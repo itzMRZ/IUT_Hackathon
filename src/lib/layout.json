@@ -1,0 +1,76 @@
+{
+  "viewBox": { "width": 1140, "height": 700 },
+  "rooms": {
+    "drawing": { "x": 12, "y": 12, "width": 360, "height": 500, "label": "Drawing Room" },
+    "workroom1": { "x": 384, "y": 12, "width": 360, "height": 500, "label": "Work Room 1" },
+    "workroom2": { "x": 756, "y": 12, "width": 360, "height": 500, "label": "Work Room 2" },
+    "hallway": { "x": 12, "y": 524, "width": 1104, "height": 164, "label": "Hallway" }
+  },
+  "windows": [
+    { "room": "drawing", "x": 4, "y": 180, "width": 10, "height": 80 },
+    { "room": "drawing", "x": 120, "y": 4, "width": 90, "height": 10 },
+    { "room": "workroom1", "x": 130, "y": 4, "width": 90, "height": 10 },
+    { "room": "workroom2", "x": 130, "y": 4, "width": 90, "height": 10 },
+    { "room": "workroom2", "x": 346, "y": 180, "width": 10, "height": 80 }
+  ],
+  "doors": [
+    { "room": "drawing", "x": 300, "y": 488, "radius": 40, "swing": "left" },
+    { "room": "workroom1", "x": 40, "y": 488, "radius": 40, "swing": "right" },
+    { "room": "workroom2", "x": 40, "y": 488, "radius": 40, "swing": "right" },
+    { "room": "hallway", "x": 520, "y": 148, "radius": 48, "swing": "down", "label": "ENTRY" }
+  ],
+  "furniture": {
+    "drawing": {
+      "sofa": { "x": 28, "y": 200, "width": 140, "height": 90 },
+      "armchair": { "x": 40, "y": 380, "width": 70, "height": 70 },
+      "coffeeTable": { "x": 120, "y": 280, "width": 90, "height": 55 }
+    },
+    "workroom1": {
+      "desks": [
+        { "x": 40, "y": 80, "width": 120, "height": 58 },
+        { "x": 200, "y": 80, "width": 120, "height": 58 },
+        { "x": 40, "y": 320, "width": 120, "height": 58 },
+        { "x": 200, "y": 320, "width": 120, "height": 58 }
+      ]
+    },
+    "workroom2": {
+      "desks": [
+        { "x": 40, "y": 80, "width": 120, "height": 58 },
+        { "x": 200, "y": 80, "width": 120, "height": 58 },
+        { "x": 40, "y": 320, "width": 120, "height": 58 },
+        { "x": 200, "y": 320, "width": 120, "height": 58 }
+      ]
+    },
+    "hallway": {
+      "waterCooler": { "x": 980, "y": 50, "width": 50, "height": 70 }
+    }
+  },
+  "plants": [
+    { "id": "drawing-plant-tl", "room": "drawing", "x": 50, "y": 55, "size": 36 },
+    { "id": "drawing-plant-br", "room": "drawing", "x": 290, "y": 420, "size": 34 },
+    { "id": "drawing-plant-mid", "room": "drawing", "x": 50, "y": 300, "size": 30 },
+    { "id": "wr1-plant-t", "room": "workroom1", "x": 300, "y": 60, "size": 22 },
+    { "id": "wr1-plant-b", "room": "workroom1", "x": 60, "y": 300, "size": 22 },
+    { "id": "wr2-plant-tr", "room": "workroom2", "x": 300, "y": 60, "size": 22 },
+    { "id": "wr2-plant-bl", "room": "workroom2", "x": 60, "y": 300, "size": 22 },
+    { "id": "hall-plant-l", "room": "hallway", "x": 50, "y": 90, "size": 36 },
+    { "id": "hall-plant-r", "room": "hallway", "x": 900, "y": 90, "size": 36 }
+  ],
+  "devices": {
+    "drawing-fan-1": { "room": "drawing", "type": "fan", "x": 180, "y": 130, "size": 48, "bladeLen": 52 },
+    "drawing-fan-2": { "room": "drawing", "type": "fan", "x": 180, "y": 370, "size": 48, "bladeLen": 52 },
+    "drawing-light-1": { "room": "drawing", "type": "light", "x": 75, "y": 65, "size": 28, "poolRadius": 100 },
+    "drawing-light-2": { "room": "drawing", "type": "light", "x": 285, "y": 65, "size": 28, "poolRadius": 100 },
+    "drawing-light-3": { "room": "drawing", "type": "light", "x": 180, "y": 440, "size": 28, "poolRadius": 100 },
+    "workroom1-fan-1": { "room": "workroom1", "type": "fan", "x": 180, "y": 175, "size": 44, "bladeLen": 48 },
+    "workroom1-fan-2": { "room": "workroom1", "type": "fan", "x": 180, "y": 335, "size": 44, "bladeLen": 48 },
+    "workroom1-light-1": { "room": "workroom1", "type": "light", "x": 75, "y": 48, "size": 26, "poolRadius": 95 },
+    "workroom1-light-2": { "room": "workroom1", "type": "light", "x": 285, "y": 48, "size": 26, "poolRadius": 95 },
+    "workroom1-light-3": { "room": "workroom1", "type": "light", "x": 180, "y": 455, "size": 26, "poolRadius": 95 },
+    "workroom2-fan-1": { "room": "workroom2", "type": "fan", "x": 180, "y": 175, "size": 44, "bladeLen": 48 },
+    "workroom2-fan-2": { "room": "workroom2", "type": "fan", "x": 180, "y": 335, "size": 44, "bladeLen": 48 },
+    "workroom2-light-1": { "room": "workroom2", "type": "light", "x": 75, "y": 48, "size": 26, "poolRadius": 95 },
+    "workroom2-light-2": { "room": "workroom2", "type": "light", "x": 285, "y": 48, "size": 26, "poolRadius": 95 },
+    "workroom2-light-3": { "room": "workroom2", "type": "light", "x": 180, "y": 455, "size": 26, "poolRadius": 95 }
+  }
+}

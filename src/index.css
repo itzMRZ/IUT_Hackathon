@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --color-canvas: #eef1f6;
+  --color-surface: #ffffff;
+  --color-border: #d8e0ea;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.fan-blades-spin {
+  /* fan uses SVG animateTransform instead */
+}
+
+.light-pool {
+  transition: opacity 1.8s ease;
+}
+
+.room-dim {
+  transition: opacity 1.8s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fan-blades-spin {
+    animation: none;
+  }
+  .light-pool,
+  .room-dim {
+    transition: none;
+  }
+}
