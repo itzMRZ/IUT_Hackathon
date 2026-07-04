@@ -1,6 +1,5 @@
-import { Fan, Lightbulb, Play, Pause, Sparkles } from 'lucide-react'
+import { Fan, Lightbulb, Play, Pause, Sparkles, AlertTriangle } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
-import { totalWattage } from '../lib/wattage'
 import { ROOM_LABELS, ROOM_ORDER, type Device, type Room } from '../lib/types'
 
 const PRESETS = [
@@ -60,9 +59,7 @@ function RoomToggles({ room }: { room: Room }) {
 }
 
 export function SimulationPanel() {
-  const { devices, alerts, autoSim, setAutoSim, applyPreset, connected, source } = useOfficeData()
-  const total = totalWattage(devices)
-  const onCount = devices.filter((d) => d.status === 'on').length
+  const { alerts, autoSim, setAutoSim, applyPreset, connected } = useOfficeData()
 
   return (
     <aside className="flex h-full min-h-0 flex-col gap-2 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white p-3 shadow-[var(--shadow-md)]">
@@ -71,22 +68,7 @@ export function SimulationPanel() {
           <Sparkles size={16} className="text-violet-500" />
           <h2 className="text-sm font-bold text-slate-800">Simulation</h2>
         </div>
-        <p className="mt-0.5 text-[10px] text-slate-500">Manual toggles and demo presets</p>
-      </div>
-
-      <div className="grid shrink-0 grid-cols-3 gap-1.5 rounded-xl bg-slate-50 p-2">
-        <div className="text-center">
-          <p className="text-[9px] uppercase text-slate-500">Power</p>
-          <p className="text-sm font-bold text-violet-700">{total}W</p>
-        </div>
-        <div className="text-center">
-          <p className="text-[9px] uppercase text-slate-500">On</p>
-          <p className="text-sm font-bold text-emerald-600">{onCount}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-[9px] uppercase text-slate-500">Alerts</p>
-          <p className="text-sm font-bold text-amber-600">{alerts.length}</p>
-        </div>
+        <p className="mt-0.5 text-[10px] text-slate-500">Presets and manual device controls</p>
       </div>
 
       <div className="shrink-0">
@@ -118,6 +100,22 @@ export function SimulationPanel() {
         Auto simulation {autoSim ? 'ON' : 'OFF'}
       </button>
 
+      {alerts.length > 0 && (
+        <div className="shrink-0 rounded-xl border border-amber-200 bg-amber-50/70 p-2">
+          <p className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase text-amber-800">
+            <AlertTriangle size={11} />
+            Alerts ({alerts.length})
+          </p>
+          <ul className="max-h-20 space-y-1 overflow-y-auto text-[10px] text-amber-900">
+            {alerts.slice(0, 4).map((a) => (
+              <li key={a.id} className="leading-snug">
+                {a.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="min-h-0 flex-1 overflow-y-auto">
         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
           Manual Controls
@@ -130,7 +128,7 @@ export function SimulationPanel() {
       </div>
 
       <p className="shrink-0 text-center text-[9px] text-slate-400">
-        {connected ? `Connected (${source})` : 'Connecting...'}
+        {connected ? 'WebSocket connected' : 'Waiting for server…'}
       </p>
     </aside>
   )

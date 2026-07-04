@@ -1,18 +1,30 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import { mockStore } from '../lib/mockStore'
-import { patchDevice } from '../lib/deviceUtils'
-import type { Device, Alert } from '../lib/types'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from 'react'
+import type { Device, Alert, OfficeSnapshot, ClientMessage, ServerMessage } from '../lib/types'
+
+function getWsUrl(): string {
+  const env = import.meta.env.VITE_WS_URL
+  if (env) return env
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
+  return `${proto}//${location.host}/ws`
+}
 
 interface OfficeData {
   devices: Device[]
   alerts: Alert[]
   loading: boolean
   connected: boolean
-  source: 'supabase' | 'mock'
+  source: 'websocket'
   autoSim: boolean
-  toggleDevice: (id: string) => Promise<void>
-  applyPreset: (preset: string) => Promise<void>
+  toggleDevice: (id: string) => void
+  applyPreset: (preset: string) => void
   setAutoSim: (enabled: boolean) => void
 }
 
@@ -24,103 +36,79 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [connected, setConnected] = useState(false)
   const [autoSim, setAutoSimState] = useState(true)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const loadSnapshot = useCallback(async () => {
-    if (!isSupabaseConfigured || !supabase) return
+  const send = useCallback((msg: ClientMessage) => {
+    const ws = wsRef.current
+    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg))
+  }, [])
 
-    const [devRes, alertRes] = await Promise.all([
-      supabase.from('devices').select('*').order('room').order('type').order('label'),
-      supabase.from('alerts').select('*').order('created_at', { ascending: false }).limit(20),
-    ])
-
-    if (devRes.data) setDevices(devRes.data as Device[])
-    if (alertRes.data) setAlerts(alertRes.data as Alert[])
+  const applySnapshot = useCallback((snap: OfficeSnapshot) => {
+    setDevices(snap.devices)
+    setAlerts(snap.alerts)
+    setAutoSimState(snap.autoSim)
     setLoading(false)
     setConnected(true)
   }, [])
 
-  const toggleDevice = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured || !supabase) {
-      mockStore.toggleDevice(id)
-      return
-    }
-    const device = devices.find((d) => d.id === id)
-    if (!device) return
-    const next = patchDevice(device, device.status === 'on' ? 'off' : 'on')
-    await supabase.from('devices').update({
-      status: next.status,
-      wattage: next.wattage,
-      last_changed: next.last_changed,
-      on_since: next.on_since,
-    }).eq('id', id)
-  }, [devices])
+  const toggleDevice = useCallback(
+    (id: string) => send({ type: 'toggle', deviceId: id }),
+    [send],
+  )
 
-  const applyPreset = useCallback(async (preset: string) => {
-    if (!isSupabaseConfigured || !supabase) {
-      mockStore.applyPreset(preset)
-      return
-    }
-    // Supabase presets: delegate to mock logic then bulk upsert would need service role;
-    // for demo UI use mock-style local apply via sequential updates
-    mockStore.applyPreset(preset)
-    await loadSnapshot()
-  }, [loadSnapshot])
+  const applyPreset = useCallback(
+    (preset: string) => send({ type: 'preset', preset }),
+    [send],
+  )
 
-  const setAutoSim = useCallback((enabled: boolean) => {
-    setAutoSimState(enabled)
-    mockStore.setAutoSim(enabled)
-  }, [])
+  const setAutoSim = useCallback(
+    (enabled: boolean) => send({ type: 'setAutoSim', enabled }),
+    [send],
+  )
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
-      const sync = () => {
-        setDevices(mockStore.getDevices())
-        setAlerts(mockStore.getAlerts())
-        setAutoSimState(mockStore.isAutoSim())
-        setLoading(false)
+    let mounted = true
+    let attempt = 0
+
+    const connect = () => {
+      if (!mounted) return
+      const ws = new WebSocket(getWsUrl())
+      wsRef.current = ws
+
+      ws.onopen = () => {
+        attempt = 0
         setConnected(true)
       }
-      sync()
-      const interval = setInterval(sync, 1000)
-      const unsub = mockStore.subscribe(sync)
-      return () => {
-        unsub()
-        clearInterval(interval)
+
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data as string) as ServerMessage
+          if (msg.type === 'snapshot') applySnapshot(msg.data)
+        } catch {
+          /* ignore malformed messages */
+        }
       }
+
+      ws.onclose = () => {
+        setConnected(false)
+        if (!mounted) return
+        const delay = Math.min(1000 * 2 ** attempt, 15_000)
+        attempt++
+        reconnectRef.current = setTimeout(connect, delay)
+      }
+
+      ws.onerror = () => ws.close()
     }
 
-    loadSnapshot()
-
-    const devChannel = supabase
-      .channel('devices')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'devices' }, (payload) => {
-        if (payload.eventType === 'DELETE') return
-        const row = payload.new as Device
-        setDevices((prev) => {
-          const idx = prev.findIndex((d) => d.id === row.id)
-          if (idx === -1) return [...prev, row]
-          const next = [...prev]
-          next[idx] = row
-          return next
-        })
-      })
-      .subscribe((status) => setConnected(status === 'SUBSCRIBED'))
-
-    const alertChannel = supabase
-      .channel('alerts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
-        const row = payload.new as Alert
-        setAlerts((prev) => [row, ...prev].slice(0, 20))
-      })
-      .subscribe()
+    connect()
 
     return () => {
-      if (supabase) {
-        supabase.removeChannel(devChannel)
-        supabase.removeChannel(alertChannel)
-      }
+      mounted = false
+      if (reconnectRef.current) clearTimeout(reconnectRef.current)
+      wsRef.current?.close()
     }
-  }, [loadSnapshot])
+  }, [applySnapshot])
 
   return (
     <OfficeContext.Provider
@@ -129,7 +117,7 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
         alerts,
         loading,
         connected,
-        source: isSupabaseConfigured ? 'supabase' : 'mock',
+        source: 'websocket',
         autoSim,
         toggleDevice,
         applyPreset,

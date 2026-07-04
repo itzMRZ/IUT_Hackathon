@@ -4,7 +4,7 @@ import { totalWattage, wattageByRoom } from '../lib/wattage'
 import { ROOM_LABELS, ROOM_ORDER } from '../lib/types'
 
 export function HeroStats() {
-  const { devices, alerts, connected, loading, source } = useOfficeData()
+  const { devices, alerts, connected, loading } = useOfficeData()
   const total = totalWattage(devices)
   const onCount = devices.filter((d) => d.status === 'on').length
   const offCount = devices.length - onCount
@@ -20,13 +20,25 @@ export function HeroStats() {
           </div>
           <div
             className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${
-              connected && !loading ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200' : 'bg-slate-100 text-slate-500'
+              connected && !loading
+                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
             }`}
           >
-            <Radio size={12} />
-            {connected && !loading ? `Live${source === 'mock' ? ' demo' : ''}` : 'Connecting'}
+            <Radio size={12} className={connected && !loading ? 'animate-pulse' : ''} />
+            {connected && !loading ? 'Live' : loading ? 'Connecting' : 'Reconnecting'}
           </div>
         </div>
+
+        {alerts.length > 0 && (
+          <div className="mb-2.5 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-amber-800">Active alerts</p>
+            <p className="mt-0.5 text-[11px] text-amber-900">{alerts[0].message}</p>
+            {alerts.length > 1 && (
+              <p className="mt-0.5 text-[10px] text-amber-700">+{alerts.length - 1} more</p>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
           <HeroCard icon={Zap} label="Total Power" value={`${total}W`} accent="violet" />

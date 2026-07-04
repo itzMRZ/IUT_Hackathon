@@ -5,25 +5,28 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "tsx server/index.ts",
+    "discord": "tsx discord/bot.ts",
+    "dev:all": "concurrently -n server,vite -c blue,green \"npm run server\" \"npm run dev\"",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
-    "sim": "tsx simulator/index.ts",
-    "seed:demo-stuck": "echo 'Run supabase/seed-demo-stuck.sql in Supabase SQL editor'",
-    "seed:after-hours": "echo 'Run supabase/seed-after-hours.sql in Supabase SQL editor'"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.0",
+    "discord.js": "^14.26.4",
     "lucide-react": "^1.23.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",
     "oxlint": "^1.71.0",
     "tailwindcss": "^4.3.2",
