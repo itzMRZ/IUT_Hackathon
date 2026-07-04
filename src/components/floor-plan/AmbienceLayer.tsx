@@ -63,7 +63,7 @@ export function AmbienceLayer({ devices }: Props) {
         if (!pos || !('poolRadius' in pos)) return null
         const room = roomOffset(light.room)
         const cx = room.x + pos.x
-        const cy = room.y + pos.y + 20
+        const cy = room.y + pos.y + 8
         const r = pos.poolRadius
         const on = light.status === 'on'
 

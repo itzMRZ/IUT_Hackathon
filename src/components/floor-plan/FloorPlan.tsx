@@ -53,8 +53,8 @@ export function FloorPlan() {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-md)]">
-      <div className="relative min-h-0 flex-1 p-1.5">
-        <div className="relative h-full w-full">
+      <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0">
           <svg
             viewBox={`0 0 ${vb.width} ${vb.height}`}
             className="absolute inset-0 h-full w-full"

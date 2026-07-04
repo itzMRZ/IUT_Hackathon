@@ -297,9 +297,9 @@ export function StaticPlants() {
         const s = plant.size
         return (
           <g key={plant.id} transform={`translate(${x}, ${y})`}>
-            <ellipse cx={0} cy={s * 0.4} rx={s * 0.35} ry={s * 0.12} fill="#2d4a28" opacity={0.3} />
-            <rect x={-s * 0.08} y={0} width={s * 0.16} height={s * 0.45} fill="#5c4033" rx={2} />
-            <ellipse cx={0} cy={-s * 0.1} rx={s * 0.4} ry={s * 0.35} fill="#3d7a37" />
+            <ellipse cx={0} cy={s * 0.35} rx={s * 0.3} ry={s * 0.1} fill="#2d4a28" opacity={0.25} />
+            <rect x={-s * 0.07} y={0} width={s * 0.14} height={s * 0.35} fill="#5c4033" rx={2} />
+            <ellipse cx={0} cy={-s * 0.08} rx={s * 0.32} ry={s * 0.28} fill="#3d7a37" />
           </g>
         )
       })}

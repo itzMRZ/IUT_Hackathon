@@ -5,46 +5,53 @@ interface Props {
   devices: Device[]
 }
 
+/** Top-down ceiling fan: hub fixed, 3 long blades rotate when ON */
 function CeilingFan({ x, y, bladeLen, on, label }: {
   x: number; y: number; bladeLen: number; on: boolean; label: string
 }) {
+  const hub = bladeLen * 0.14
+  const bladeW = bladeLen * 0.14
+
   return (
     <g transform={`translate(${x}, ${y})`}>
-      {/* ceiling rod */}
-      <line x1={0} y1={-bladeLen * 0.55} x2={0} y2={-bladeLen * 0.15} stroke="#64748b" strokeWidth={3} strokeLinecap="round" />
-      <circle cx={0} cy={-bladeLen * 0.55} r={4} fill="#94a3b8" />
+      {/* motor hub - always static */}
+      <circle r={hub} fill="#57534e" stroke="#44403c" strokeWidth={2} />
+      <circle r={hub * 0.45} fill="#78716c" />
 
-      {/* motor housing */}
-      <ellipse cx={0} cy={0} rx={bladeLen * 0.22} ry={bladeLen * 0.14} fill={on ? '#78716c' : '#a8a29e'} stroke="#57534e" strokeWidth={1.5} />
-
-      {/* 3 blades - static when off, spin when on */}
-      <g className={on ? 'fan-blades-spin' : ''} style={{ transformOrigin: '0px 0px' }}>
+      {/* 3 blades - rotate together when ON */}
+      <g>
+        {on && (
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 0 0"
+            to="360 0 0"
+            dur="1.4s"
+            repeatCount="indefinite"
+          />
+        )}
         {[0, 120, 240].map((deg) => (
           <g key={deg} transform={`rotate(${deg})`}>
             <rect
-              x={-bladeLen * 0.08}
-              y={-bladeLen * 0.92}
-              width={bladeLen * 0.16}
-              height={bladeLen * 0.78}
-              rx={bladeLen * 0.04}
-              fill={on ? '#92400e' : '#a8a29e'}
-              stroke={on ? '#78350f' : '#78716c'}
+              x={-bladeW / 2}
+              y={-bladeLen}
+              width={bladeW}
+              height={bladeLen - hub - 4}
+              rx={bladeW / 3}
+              fill={on ? '#78350f' : '#a8a29e'}
+              stroke={on ? '#451a03' : '#78716c'}
               strokeWidth={1}
             />
           </g>
         ))}
       </g>
 
-      {/* hub cap */}
-      <circle r={bladeLen * 0.12} fill={on ? '#44403c' : '#78716c'} stroke="#292524" strokeWidth={1} />
-
-      {/* label + status */}
-      <text y={bladeLen * 0.55} textAnchor="middle" fill="#334155" fontSize={10} fontWeight={700} fontFamily="DM Sans, sans-serif">
+      <text y={bladeLen + 14} textAnchor="middle" fill="#334155" fontSize={9} fontWeight={700} fontFamily="DM Sans, sans-serif">
         {label}
       </text>
-      <g transform={`translate(${-18}, ${bladeLen * 0.62})`}>
-        <rect width={36} height={14} rx={7} fill={on ? '#059669' : '#94a3b8'} />
-        <text x={18} y={10} textAnchor="middle" fill="white" fontSize={8} fontWeight={700} fontFamily="DM Sans, sans-serif">
+      <g transform={`translate(-16, ${bladeLen + 20})`}>
+        <rect width={32} height={12} rx={6} fill={on ? '#059669' : '#94a3b8'} />
+        <text x={16} y={9} textAnchor="middle" fill="white" fontSize={7} fontWeight={700} fontFamily="DM Sans, sans-serif">
           {on ? 'ON' : 'OFF'}
         </text>
       </g>
@@ -52,42 +59,22 @@ function CeilingFan({ x, y, bladeLen, on, label }: {
   )
 }
 
-function CeilingLight({ x, y, radius, poolRadius, on, label }: {
-  x: number; y: number; radius: number; poolRadius: number; on: boolean; label: string
+function CeilingLight({ x, y, size, on, label }: {
+  x: number; y: number; size: number; on: boolean; label: string
 }) {
+  const r = size / 2
   return (
     <g transform={`translate(${x}, ${y})`}>
-      {/* fixture mount */}
-      <line x1={0} y1={-radius * 1.2} x2={0} y2={-radius * 0.5} stroke="#94a3b8" strokeWidth={2} />
-      {/* shade */}
-      <path
-        d={`M ${-radius * 0.9} ${-radius * 0.4} Q 0 ${-radius * 0.9} ${radius * 0.9} ${-radius * 0.4} L ${radius * 0.7} ${radius * 0.1} L ${-radius * 0.7} ${radius * 0.1} Z`}
-        fill={on ? '#fde68a' : '#e2e8f0'}
-        stroke={on ? '#f59e0b' : '#cbd5e1'}
-        strokeWidth={1.5}
-      />
-      {/* bulb */}
-      <circle cy={radius * 0.05} r={radius * 0.45} fill={on ? '#fbbf24' : '#cbd5e1'} stroke={on ? '#f59e0b' : '#94a3b8'} strokeWidth={2} />
+      <circle r={r + 4} fill={on ? '#fef3c7' : '#f1f5f9'} stroke={on ? '#fbbf24' : '#cbd5e1'} strokeWidth={2} />
+      <circle r={r} fill={on ? '#fbbf24' : '#94a3b8'} />
+      {on && <circle r={r * 0.35} fill="#fffbeb" />}
 
-      {/* range indicator ring (subtle, shows lit area footprint) */}
-      <ellipse
-        cx={0}
-        cy={radius * 0.8}
-        rx={poolRadius * 0.35}
-        ry={poolRadius * 0.28}
-        fill="none"
-        stroke={on ? '#fbbf24' : '#cbd5e1'}
-        strokeWidth={1}
-        strokeDasharray={on ? '0' : '4 3'}
-        opacity={on ? 0.35 : 0.2}
-      />
-
-      <text y={radius * 1.8} textAnchor="middle" fill="#334155" fontSize={10} fontWeight={700} fontFamily="DM Sans, sans-serif">
+      <text y={size + 12} textAnchor="middle" fill="#334155" fontSize={9} fontWeight={700} fontFamily="DM Sans, sans-serif">
         {label}
       </text>
-      <g transform={`translate(${-18}, ${radius * 2.05})`}>
-        <rect width={36} height={14} rx={7} fill={on ? '#059669' : '#94a3b8'} />
-        <text x={18} y={10} textAnchor="middle" fill="white" fontSize={8} fontWeight={700} fontFamily="DM Sans, sans-serif">
+      <g transform={`translate(-16, ${size + 18})`}>
+        <rect width={32} height={12} rx={6} fill={on ? '#059669' : '#94a3b8'} />
+        <text x={16} y={9} textAnchor="middle" fill="white" fontSize={7} fontWeight={700} fontFamily="DM Sans, sans-serif">
           {on ? 'ON' : 'OFF'}
         </text>
       </g>
@@ -111,25 +98,17 @@ export function DeviceSprites({ devices }: Props) {
         const on = device.status === 'on'
 
         if (device.type === 'fan') {
+          const bladeLen = 'bladeLen' in pos ? pos.bladeLen : 48
           return (
-            <CeilingFan
-              key={device.id}
-              x={x}
-              y={y}
-              bladeLen={pos.size * 0.65 + 18}
-              on={on}
-              label={device.label}
-            />
+            <CeilingFan key={device.id} x={x} y={y} bladeLen={bladeLen} on={on} label={device.label} />
           )
         }
-        const poolRadius = 'poolRadius' in pos ? pos.poolRadius : 120
         return (
           <CeilingLight
             key={device.id}
             x={x}
             y={y}
-            radius={pos.size * 0.45 + 6}
-            poolRadius={poolRadius}
+            size={pos.size}
             on={on}
             label={device.label}
           />

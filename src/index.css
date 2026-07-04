@@ -31,15 +31,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-@keyframes fan-blades-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 .fan-blades-spin {
-  animation: fan-blades-spin 1.6s linear infinite;
-  transform-box: fill-box;
-  transform-origin: center;
+  /* fan uses SVG animateTransform instead */
 }
 
 .light-pool {
