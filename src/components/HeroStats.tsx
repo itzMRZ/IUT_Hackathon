@@ -4,7 +4,7 @@ import { totalWattage, wattageByRoom } from '../lib/wattage'
 import { ROOM_LABELS, ROOM_ORDER } from '../lib/types'
 
 export function HeroStats() {
-  const { devices, alerts, connected, loading } = useOfficeData()
+  const { devices, alerts, connected } = useOfficeData()
   const total = totalWattage(devices)
   const onCount = devices.filter((d) => d.status === 'on').length
   const offCount = devices.length - onCount
@@ -20,15 +20,23 @@ export function HeroStats() {
           </div>
           <div
             className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${
-              connected && !loading
+              connected
                 ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
                 : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
             }`}
           >
-            <Radio size={12} className={connected && !loading ? 'animate-pulse' : ''} />
-            {connected && !loading ? 'Live' : loading ? 'Connecting' : 'Reconnecting'}
+            <Radio size={12} className={connected ? 'animate-pulse' : ''} />
+            {connected ? 'Live' : 'Offline demo'}
           </div>
         </div>
+
+        {!connected && (
+          <div className="mb-2.5 rounded-xl border border-sky-200 bg-sky-50/80 px-3 py-2">
+            <p className="text-[11px] text-sky-900">
+              Showing demo data. Run <code className="rounded bg-white px-1 py-0.5">npm run dev:all</code> for live simulation.
+            </p>
+          </div>
+        )}
 
         {alerts.length > 0 && (
           <div className="mb-2.5 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2">
