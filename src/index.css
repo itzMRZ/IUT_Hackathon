@@ -3,28 +3,44 @@
 
 @theme {
   --font-sans: 'DM Sans', system-ui, sans-serif;
-  --color-surface: #0f1419;
-  --color-surface-raised: #1a222d;
-  --color-surface-card: #232d3b;
-  --color-border: #2e3a4d;
-  --color-text: #e8edf4;
-  --color-text-muted: #8b9cb3;
-  --color-accent: #3dd68c;
-  --color-accent-dim: #2a9d63;
-  --color-warning: #e8a838;
-  --color-danger: #e85d5d;
-  --color-live: #3dd68c;
+  --color-canvas: #e8ecf2;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f4f6f9;
+  --color-surface-hero: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  --color-border: #dce3ed;
+  --color-border-strong: #c5d0de;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+  --color-on: #059669;
+  --color-on-bg: #d1fae5;
+  --color-on-ring: #34d399;
+  --color-off: #64748b;
+  --color-off-bg: #f1f5f9;
+  --color-warning: #d97706;
+  --color-warning-bg: #fef3c7;
+  --color-live: #0ea5e9;
+  --color-live-bg: #e0f2fe;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-hero: 0 8px 32px rgba(15, 23, 42, 0.1);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
   font-family: var(--font-sans);
-  background: var(--color-surface);
+  background: var(--color-canvas);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
 }
@@ -39,8 +55,13 @@ body {
   50% { transform: rotate(2deg); }
 }
 
+@keyframes pulse-on {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 .fan-spinning {
-  animation: fan-spin 2s linear infinite;
+  animation: fan-spin 1.8s linear infinite;
   transform-origin: center;
 }
 
@@ -57,18 +78,23 @@ body {
   transition: opacity 1.5s ease;
 }
 
-.device-glow {
-  transition: filter 1.5s ease, opacity 0.3s ease;
+.device-marker {
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+.status-pulse-on {
+  animation: pulse-on 2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .fan-spinning,
-  .plant-swaying {
+  .plant-swaying,
+  .status-pulse-on {
     animation: none;
   }
   .light-pool,
   .room-dim,
-  .device-glow {
+  .device-marker {
     transition: none;
   }
 }

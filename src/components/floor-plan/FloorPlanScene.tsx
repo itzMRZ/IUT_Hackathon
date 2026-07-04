@@ -50,7 +50,7 @@ function Wall({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
       width={w}
       height={h}
       fill="none"
-      stroke="#2a3344"
+      stroke="#94a3b8"
       strokeWidth={10}
       rx={2}
     />
@@ -178,7 +178,7 @@ export function FloorPlanStructure() {
 
   return (
     <>
-      <rect width={vb.width} height={vb.height} fill="#1e2430" />
+      <rect width={vb.width} height={vb.height} fill="#eef2f6" />
 
       <RoomFloor room="drawing" fill="url(#carpet)" />
       <RoomFloor room="workroom1" fill="url(#tile-gray)" />

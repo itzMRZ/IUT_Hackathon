@@ -17,7 +17,8 @@ export function AmbienceLayer({ devices }: Props) {
   return (
     <svg
       viewBox={`0 0 ${layout.viewBox.width} ${layout.viewBox.height}`}
-      className="absolute inset-0 w-full h-full pointer-events-none"
+      className="absolute inset-0 h-full w-full pointer-events-none"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
         {lights.map((light) => {
@@ -43,7 +44,7 @@ export function AmbienceLayer({ devices }: Props) {
         const room = roomOffset(roomId)
         const roomLights = lights.filter((l) => l.room === roomId)
         const anyOn = roomLights.some((l) => l.status === 'on')
-        const dimOpacity = anyOn ? 0 : 0.55
+        const dimOpacity = anyOn ? 0 : 0.35
 
         return (
           <g key={roomId}>
@@ -52,7 +53,7 @@ export function AmbienceLayer({ devices }: Props) {
               y={room.y + 5}
               width={room.w - 10}
               height={room.h - 10}
-              fill="#0a0e14"
+              fill="#64748b"
               className="room-dim"
               opacity={dimOpacity}
               style={{ mixBlendMode: 'multiply' }}

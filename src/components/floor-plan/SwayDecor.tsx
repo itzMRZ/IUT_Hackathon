@@ -28,7 +28,8 @@ export function SwayDecor({ devices }: Props) {
   return (
     <svg
       viewBox={`0 0 ${layout.viewBox.width} ${layout.viewBox.height}`}
-      className="absolute inset-0 w-full h-full pointer-events-none"
+      className="absolute inset-0 h-full w-full pointer-events-none"
+      preserveAspectRatio="xMidYMid meet"
     >
       {layout.plants.map((plant) => {
         const room = layout.rooms[plant.room as keyof typeof layout.rooms]
