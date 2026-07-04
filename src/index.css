@@ -34,9 +34,9 @@
 html,
 body,
 #root {
+  width: 100%;
   height: 100%;
   margin: 0;
-  overflow: hidden;
 }
 
 body {
@@ -48,46 +48,54 @@ body {
 }
 
 /* ══════════════ Shell ══════════════ */
+/* width + minmax(0, 1fr) on the single column is essential — without it,
+   a CSS grid sizes its track to the max-content width of its children
+   (e.g. the stat row's flex items), which can silently blow the whole
+   page out past the viewport instead of respecting it. */
 .dashboard-shell {
   display: grid;
-  height: 100dvh;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  overflow: hidden;
+  width: 100%;
+  min-height: 100dvh;
+  grid-template-columns: minmax(0, 1fr);
+  /* Mobile: each section is sized to its own content and the page
+     scrolls normally — locking three variable-height panels into a
+     fixed viewport on a short phone screen leaves no room for any of
+     them. Desktop gets the locked, no-scroll layout (see media query). */
+  grid-template-rows: auto auto auto;
   background: var(--color-canvas);
 }
 
 .dashboard-header {
+  min-width: 0;
   padding: 10px 18px 0;
 }
 
 .dashboard-footer {
+  min-width: 0;
   padding: 0 18px 10px;
 }
 
 .dashboard-body {
   display: grid;
-  min-height: 0;
+  min-width: 0;
   gap: 10px;
   padding: 10px 18px;
   grid-template-columns: minmax(0, 1fr);
-  /* Floor plan and device controls share the flexible space; presets is a
-     fixed set of buttons that never grows, so it can size to its content. */
-  grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
 }
 
 .dashboard-floor {
   grid-column: 1;
   grid-row: 1;
-  min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  height: min(60vh, 480px);
 }
 
 .dashboard-manual {
   grid-column: 1;
   grid-row: 2;
-  min-height: 0;
   min-width: 0;
+  max-height: 380px;
   overflow: hidden;
 }
 
@@ -98,17 +106,29 @@ body {
 }
 
 @media (min-width: 960px) {
+  .dashboard-shell {
+    height: 100dvh;
+    overflow: hidden;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
   .dashboard-body {
+    min-height: 0;
     grid-template-columns: minmax(0, 1fr) 320px;
     grid-template-rows: minmax(0, 1fr) auto;
   }
   .dashboard-floor {
     grid-column: 1;
     grid-row: 1 / -1;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
   }
   .dashboard-manual {
     grid-column: 2;
     grid-row: 1;
+    max-height: none;
+    min-height: 0;
   }
   .dashboard-presets {
     grid-column: 2;
