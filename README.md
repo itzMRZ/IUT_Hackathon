@@ -1,184 +1,102 @@
-# Office Monitor — IUT Hackathon
+# Smart Office Monitoring Dashboard
 
-Real-time office monitoring dashboard. Tracks **15 devices** (2 fans + 3
-lights × 3 rooms) with a live WebSocket simulation, an interactive floor
-plan, manual controls, preset demo scenarios, and Discord notifications.
+A real-time office monitoring dashboard that tracks 15 devices (2 fans + 3 lights × 3 rooms) with a live WebSocket simulation, an interactive floor plan, manual controls, preset demo scenarios, and Discord notifications.
 
-> **Device count note:** the problem statement mentions 18 devices in some
-> places, but 3 rooms × (2 fans + 3 lights) = 15. The "18" figure is a
-> typo (2+3 was miscounted as 6 per room).
 
-<br>
+
+## Features
+
+-  Real-time monitoring of 15 devices across 3 rooms (2 fans + 3 lights each)
+-  Live updates via WebSocket
+-  Interactive floor plan view
+-  Manual device controls
+-  Preset demo scenarios
+-  Discord notifications
+
 
 ## Architecture
 
-```
-┌─────────────────────────┐
-│   server/state.ts        │   in-memory simulation, alert rules
-│   (15 devices, 3 rooms)  │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│   server/index.ts          │   WebSocket (/ws) + REST (/api/*) on :3001
-└──────┬──────────┬──────────┘
-       │          │
-       │          └──────────────► Discord Webhook (every change → embed)
-       │
-┌──────▼──────────────┐    ┌──────────────────────┐
-│   Dashboard (src/)    │    │   Discord Bot (discord/) │
-│   WebSocket client    │    │   REST + WS client        │
-└───────────────────────┘    └────────────────────────────┘
-```
+<img width="4055" height="1220" alt="archi" src="https://github.com/user-attachments/assets/7eb7e692-73f1-47f6-9ae3-3f064dfeba11" />
 
-No database. State lives in memory on the server and resets on restart —
-intentional for a hackathon demo.
 
-<br>
 
-## Quick start
+## Hardware Requirements
 
-```bash
-npm install
-npm run dev:all
-```
+- Raspberry Pi Pico W
+- 6-Channel Relay Module
+- PZEM-004T Energy Monitoring Module
+- Jumper wires
+- Appropriate AC wiring for lights/fans (mains voltage)
 
-Opens the server on `http://localhost:3001` and the dashboard on
-`http://localhost:5173`. The dashboard proxies `/api` and `/ws` to the
-server automatically in dev.
+---
 
-Run them separately if you prefer:
+## Setup
 
-```bash
-npm run server   # WebSocket + REST + simulation + Discord webhook
-npm run dev      # dashboard only (renders immediately with seed data)
-```
+### 1. Schematics
 
-<br>
+![](https://github.com/user-attachments/assets/199cdf00-77a5-492c-86e1-7d38cadf5e87)
 
-## What's in the dashboard
 
-| Area | What it does |
-|---|---|
-| **Top stats bar** | Total power, devices on/off, active alerts, per-room wattage |
-| **Floor plan** | Click any fan or light to toggle it — fans spin, lights glow |
-| **Device controls** | Toggle switches for every device, grouped by room |
-| **Preset modes** | One-click demo scenarios: Office Busy, After Hours, Room Stuck, All Off |
-| **Auto simulation** | Background tick every 18s that randomly changes devices and raises alerts |
-| **Status strip** | Every device with ON/OFF duration, at a glance |
-| **Onboarding tour** | 4-step walkthrough shown once on first visit (`localStorage`) |
+#### Relay Module Wiring
 
-<br>
+| Pico W        | 6-Channel Relay |
+| ------------- | ---------------- |
+| VBUS (Pin 40) | VCC               |
+| GND           | GND               |
+| GP27          | IN1 (Light 1)     |
+| GP26          | IN2 (Light 2)     |
+| GP25          | IN3 (Light 3)     |
+| GP24          | IN4 (Fan 1)       |
+| GP22          | IN5 (Fan 2)       |
 
-## Discord integration
+#### PZEM-004T Wiring
 
-Two independent options — use either or both:
+| Pico W        | PZEM-004T |
+| ------------- | --------- |
+| VBUS (Pin 40) | VCC       |
+| GND           | GND       |
+| GP0           | RX        |
+| GP1           | TX        |
 
-### 1. Webhook (zero code, already working)
+> ** Safety Warning:** The relays and PZEM-004T interact with high-voltage AC mains. Ensure all connections are completely disconnected from the wall before wiring, and keep the exposed bottom of the relay board isolated.
 
-Posts an embed to a channel on every device toggle, preset, auto-sim change,
-or new alert.
+### 2. Flash MicroPython
 
-1. Discord: **Server Settings → Integrations → Webhooks → New Webhook**
-2. Copy the URL into `.env`: `DISCORD_WEBHOOK_URL=...`
-3. Run `npm run server` — that's it.
+This project is written in MicroPython. You must flash your Raspberry Pi Pico W with the latest MicroPython firmware first.
 
-### 2. Bot (for interactive commands)
+Find the UF2 file and flashing instructions [here](https://micropython.org/download/RPI_PICO_W/).
 
-A working starter lives in `discord/bot.ts` with `!status`, `!room`,
-`!usage`, `!toggle` commands and live alert push over WebSocket.
+After flashing, disconnect and reconnect the board via USB.
 
-**Full handoff doc with setup steps, API reference, and extension ideas:**
-📄 [`docs/DISCORD_BOT_HANDOFF.md`](docs/DISCORD_BOT_HANDOFF.md)
+### 3. Clone the Repository
 
 ```bash
-npm run discord   # after setting DISCORD_TOKEN in .env
+git clone https://github.com/itzMRZ/IUT_Hackathon.git
+cd IUT_Hackathon
 ```
 
-<br>
+### 4. Install Firmware on the Board
 
-## REST API
-
-| Method | Path | Body | Description |
-|---|---|---|---|
-| GET | `/api/health` | — | Health check |
-| GET | `/api/snapshot` | — | Full state: devices, alerts, autoSim |
-| GET | `/api/status` | — | Human-readable room summary |
-| GET | `/api/usage` | — | Wattage totals |
-| GET | `/api/room/:name` | — | One room's devices (`drawing`, `workroom1`, `workroom2`) |
-| POST | `/api/toggle` | `{ deviceId }` | Flip a device |
-| POST | `/api/preset` | `{ preset }` | Apply a scenario |
-| POST | `/api/autosim` | `{ enabled }` | Toggle background simulation |
-
-Full request/response shapes: [`docs/DISCORD_BOT_HANDOFF.md`](docs/DISCORD_BOT_HANDOFF.md#5-rest-api-reference).
-
-## WebSocket protocol
-
-Connect to `ws://localhost:3001/ws`.
-
-```jsonc
-// Server → client (on connect + every change)
-{ "type": "snapshot", "data": { "devices": [...], "alerts": [...], "autoSim": true } }
-
-// Client → server
-{ "type": "toggle", "deviceId": "drawing-fan-1" }
-{ "type": "preset", "preset": "after_hours" }
-{ "type": "setAutoSim", "enabled": false }
-```
-
-<br>
-
-## Project structure
-
-```
-src/                  React dashboard
-  components/         HeroStats, floor-plan/, ManualControls, PresetPanel,
-                       StatusBar, OnboardingTour
-  hooks/               useOfficeData — WebSocket client + optimistic updates
-  lib/                 shared types re-export, layout.json, wattage/duration helpers
-
-server/               Node WebSocket + REST server
-  state.ts             In-memory devices, alerts, simulation, preset logic
-  index.ts             HTTP + WS server, route handling
-  discordWebhook.ts     Posts embeds on state changes
-
-discord/              Discord bot starter (see docs/DISCORD_BOT_HANDOFF.md)
-shared/                Types shared between dashboard, server, and bot
-docs/                 Handoff and reference docs
-nginx/                 Reverse proxy config for VPS deployment
-ecosystem.config.cjs   PM2 process definitions (server + bot)
-deploy.sh              One-command redeploy script for the VPS
-```
-
-<br>
-
-## Device wattage
-
-| Device | On | Off |
-|---|---|---|
-| Fan | 60W | 0W |
-| Light | 15W | 0W |
-
-Office hours for the after-hours alert rule: **9 AM – 5 PM**.
-
-<br>
-
-## Environment variables
-
-See [`.env.example`](.env.example) for the full list. Nothing is required
-to run the dashboard + simulation — Discord variables are opt-in.
-
-<br>
-
-## Build
+Ensure your board is connected via USB, edit `main.py` to add your Wi-Fi credentials and WebSocket endpoint, then run:
 
 ```bash
-npm run build
-npm run preview
+python flasher.py
 ```
 
-<br>
+<!--
+TODO: paste the actual flasher.py content/behavior here once shared —
+the bullet list below is a placeholder based on the earlier draft and
+needs to be verified against the real script.
+-->
 
-## Deploying to a VPS
+The flasher will automatically:
+* Check for and install `mpremote` on your computer
+* Use `mip` to install the required `uwebsockets` package onto the Pico W
+* Copy `main.py` to the board
 
-Full step-by-step guide (Nginx + PM2 + Certbot, one command to redeploy):
-📄 [`DEPLOYMENT.md`](DEPLOYMENT.md)
+---
+
+## Dashboard Deployment
+
+For instructions on deploying the dashboard itself, see [`Deployment.md`](./Deployment.md).
+
