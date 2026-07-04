@@ -144,7 +144,6 @@ server/               Node WebSocket + REST server
 discord/              Discord bot starter (see docs/DISCORD_BOT_HANDOFF.md)
 shared/                Types shared between dashboard, server, and bot
 docs/                 Handoff and reference docs
-supabase/             Optional legacy schema — not required for the current stack
 ```
 
 <br>
