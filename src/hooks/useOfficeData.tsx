@@ -11,6 +11,18 @@ import type { Device, Alert, OfficeSnapshot, ClientMessage, ServerMessage } from
 import { SEED_SNAPSHOT } from '../lib/seed'
 import { patchDevice } from '../lib/deviceUtils'
 
+// In production (e.g. Vercel), the frontend is static and the WebSocket +
+// REST server must run on a separate host (Railway, Render, Fly.io, etc.)
+// since it needs a persistent process and in-memory state — neither of
+// which serverless functions provide. Set VITE_API_URL / VITE_WS_URL to
+// point at that host. Locally, both fall back to same-origin + Vite's dev
+// proxy (see vite.config.ts). See DEPLOYMENT.md for the full guide.
+const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+
+function apiUrl(path: string): string {
+  return `${API_BASE}${path}`
+}
+
 function getWsUrl(): string {
   const env = import.meta.env.VITE_WS_URL
   if (env) return env
@@ -20,7 +32,7 @@ function getWsUrl(): string {
 
 async function fetchSnapshot(): Promise<OfficeSnapshot | null> {
   try {
-    const res = await fetch('/api/snapshot')
+    const res = await fetch(apiUrl('/api/snapshot'))
     if (!res.ok) return null
     return res.json() as Promise<OfficeSnapshot>
   } catch {
@@ -30,7 +42,7 @@ async function fetchSnapshot(): Promise<OfficeSnapshot | null> {
 
 async function postAction(path: string, body: unknown): Promise<OfficeSnapshot | null> {
   try {
-    const res = await fetch(path, {
+    const res = await fetch(apiUrl(path), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
