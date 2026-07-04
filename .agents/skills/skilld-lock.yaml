@@ -1,0 +1,8 @@
+skills:
+  grill-me:
+    repo: mattpocock/skills
+    source: github
+    syncedAt: 2026-07-04
+    generator: external
+    path: skills/productivity/grill-me
+    ref: main

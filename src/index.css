@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --color-surface: #0f1419;
+  --color-surface-raised: #1a222d;
+  --color-surface-card: #232d3b;
+  --color-border: #2e3a4d;
+  --color-text: #e8edf4;
+  --color-text-muted: #8b9cb3;
+  --color-accent: #3dd68c;
+  --color-accent-dim: #2a9d63;
+  --color-warning: #e8a838;
+  --color-danger: #e85d5d;
+  --color-live: #3dd68c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes fan-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes plant-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+.fan-spinning {
+  animation: fan-spin 2s linear infinite;
+  transform-origin: center;
+}
+
+.plant-swaying {
+  animation: plant-sway 2.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.light-pool {
+  transition: opacity 1.5s ease;
+}
+
+.room-dim {
+  transition: opacity 1.5s ease;
+}
+
+.device-glow {
+  transition: filter 1.5s ease, opacity 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fan-spinning,
+  .plant-swaying {
+    animation: none;
+  }
+  .light-pool,
+  .room-dim,
+  .device-glow {
+    transition: none;
+  }
+}
