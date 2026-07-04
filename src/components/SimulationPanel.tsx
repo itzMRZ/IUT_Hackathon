@@ -62,7 +62,7 @@ export function SimulationPanel() {
   const { alerts, autoSim, setAutoSim, applyPreset, connected } = useOfficeData()
 
   return (
-    <aside className="flex h-full min-h-0 flex-col gap-2 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white p-3 shadow-[var(--shadow-md)]">
+    <aside className="flex h-full max-h-[38vh] min-h-0 flex-col gap-2 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white p-3 shadow-[var(--shadow-md)] lg:max-h-none">
       <div className="shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-violet-500" />

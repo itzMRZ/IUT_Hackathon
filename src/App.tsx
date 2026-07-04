@@ -8,7 +8,7 @@ function Dashboard() {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <HeroStats />
-      <main className="grid min-h-0 flex-1 grid-cols-1 gap-2 overflow-hidden px-2 pb-2 lg:grid-cols-[1fr_260px]">
+      <main className="grid min-h-0 flex-1 grid-rows-[1fr_auto] gap-2 overflow-hidden px-2 pb-2 lg:grid-cols-[1fr_260px] lg:grid-rows-1">
         <FloorPlan />
         <SimulationPanel />
       </main>

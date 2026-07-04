@@ -52,59 +52,57 @@ export function FloorPlan() {
   )
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-md)]">
-      <div className="relative min-h-0 flex-1">
-        <div className="absolute inset-0">
-          <svg
-            viewBox={`0 0 ${vb.width} ${vb.height}`}
-            className="absolute inset-0 h-full w-full"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <PatternDefs />
-            <FloorPlanStructure />
-          </svg>
+    <div className="relative h-full min-h-0 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-md)] max-lg:min-h-[360px]">
+      <div className="absolute inset-0">
+        <svg
+          viewBox={`0 0 ${vb.width} ${vb.height}`}
+          className="absolute inset-0 h-full w-full"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <PatternDefs />
+          <FloorPlanStructure />
+        </svg>
 
-          <AmbienceLayer devices={devices} />
+        <AmbienceLayer devices={devices} />
 
-          <svg
-            viewBox={`0 0 ${vb.width} ${vb.height}`}
-            className="absolute inset-0 h-full w-full pointer-events-none"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <FloorPlanFurniture />
-            <StaticPlants />
-          </svg>
+        <svg
+          viewBox={`0 0 ${vb.width} ${vb.height}`}
+          className="absolute inset-0 h-full w-full pointer-events-none"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <FloorPlanFurniture />
+          <StaticPlants />
+        </svg>
 
-          <DeviceSprites devices={devices} />
+        <DeviceSprites devices={devices} />
 
-          <svg
-            viewBox={`0 0 ${vb.width} ${vb.height}`}
-            className="absolute inset-0 h-full w-full pointer-events-none"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {(['drawing', 'workroom1', 'workroom2'] as Room[]).map((room) => {
-              if (!alertRooms.has(room)) return null
-              const r = layout.rooms[room]
-              return (
-                <rect
-                  key={room}
-                  x={r.x + 2}
-                  y={r.y + 2}
-                  width={r.width - 4}
-                  height={r.height - 4}
-                  fill="none"
-                  stroke="#d97706"
-                  strokeWidth={4}
-                  strokeOpacity={0.7}
-                  rx={6}
-                  strokeDasharray="10 5"
-                />
-              )
-            })}
-          </svg>
-        </div>
-        <FloorLegend />
+        <svg
+          viewBox={`0 0 ${vb.width} ${vb.height}`}
+          className="absolute inset-0 h-full w-full pointer-events-none"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {(['drawing', 'workroom1', 'workroom2'] as Room[]).map((room) => {
+            if (!alertRooms.has(room)) return null
+            const r = layout.rooms[room]
+            return (
+              <rect
+                key={room}
+                x={r.x + 2}
+                y={r.y + 2}
+                width={r.width - 4}
+                height={r.height - 4}
+                fill="none"
+                stroke="#d97706"
+                strokeWidth={4}
+                strokeOpacity={0.7}
+                rx={6}
+                strokeDasharray="10 5"
+              />
+            )
+          })}
+        </svg>
       </div>
+      <FloorLegend />
     </div>
   )
 }
