@@ -7,7 +7,7 @@ import { DeviceSprites } from './DeviceSprites'
 import layout from '../../lib/layout.json'
 
 export function FloorPlan() {
-  const { devices, alerts } = useOfficeData()
+  const { devices, alerts, toggleDevice } = useOfficeData()
   const vb = layout.viewBox
 
   const alertRooms = new Set(
@@ -15,31 +15,31 @@ export function FloorPlan() {
   )
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-md)]">
-      <div className="relative min-h-0 flex-1 max-lg:min-h-[300px]">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-white shadow-sm">
+      <div className="min-h-0 flex-1 overflow-hidden p-1">
         <svg
           viewBox={`0 0 ${vb.width} ${vb.height}`}
           className="h-full w-full"
           preserveAspectRatio="xMidYMid meet"
           role="img"
-          aria-label="Office floor plan with fans and lights in three rooms"
+          aria-label="Office floor plan — click fans or lights to toggle"
         >
           <FloorPlanDefs />
           <FloorPlanStructure alertRooms={alertRooms} />
           <FloorPlanFurniture />
           <AmbienceLayer devices={devices} />
-          <DeviceSprites devices={devices} />
+          <DeviceSprites devices={devices} onToggle={toggleDevice} />
         </svg>
       </div>
 
-      <div className="flex shrink-0 items-center justify-center gap-4 border-t border-slate-100 bg-slate-50/80 px-3 py-1.5">
-        <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-          <Fan size={11} className="text-amber-800" aria-hidden />
-          Fans spin when on
+      <div className="flex shrink-0 items-center justify-center gap-4 border-t border-slate-100 bg-slate-50 px-3 py-1.5">
+        <span className="text-[10px] font-medium text-slate-500">
+          <Fan size={11} className="mr-1 inline text-amber-800" aria-hidden />
+          Click devices to toggle
         </span>
-        <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-          <Lightbulb size={11} className="text-amber-500" aria-hidden />
-          Glow shows lit area
+        <span className="text-[10px] font-medium text-slate-500">
+          <Lightbulb size={11} className="mr-1 inline text-amber-500" aria-hidden />
+          Yellow glow = on
         </span>
       </div>
     </div>

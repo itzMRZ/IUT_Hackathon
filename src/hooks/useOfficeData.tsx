@@ -9,6 +9,7 @@ import {
 } from 'react'
 import type { Device, Alert, OfficeSnapshot, ClientMessage, ServerMessage } from '../lib/types'
 import { SEED_SNAPSHOT } from '../lib/seed'
+import { patchDevice } from '../lib/deviceUtils'
 
 function getWsUrl(): string {
   const env = import.meta.env.VITE_WS_URL
@@ -46,7 +47,6 @@ interface OfficeData {
   alerts: Alert[]
   loading: boolean
   connected: boolean
-  source: 'websocket' | 'offline'
   autoSim: boolean
   toggleDevice: (id: string) => void
   applyPreset: (preset: string) => void
@@ -61,42 +61,58 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const [connected, setConnected] = useState(false)
   const [autoSim, setAutoSimState] = useState(SEED_SNAPSHOT.autoSim)
-  const [source, setSource] = useState<'websocket' | 'offline'>('offline')
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const applySnapshot = useCallback((snap: OfficeSnapshot, live = false) => {
+  const applySnapshot = useCallback((snap: OfficeSnapshot) => {
     setDevices(snap.devices)
     setAlerts(snap.alerts)
     setAutoSimState(snap.autoSim)
     setLoading(false)
-    if (live) {
-      setConnected(true)
-      setSource('websocket')
-    }
+    setConnected(true)
   }, [])
 
-  const send = useCallback(
-    async (msg: ClientMessage) => {
-      const ws = wsRef.current
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(msg))
-        return
-      }
+  const sendToServer = useCallback(async (msg: ClientMessage) => {
+    const ws = wsRef.current
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(msg))
+      return
+    }
 
-      let snap: OfficeSnapshot | null = null
-      if (msg.type === 'toggle') snap = await postAction('/api/toggle', { deviceId: msg.deviceId })
-      if (msg.type === 'preset') snap = await postAction('/api/preset', { preset: msg.preset })
-      if (msg.type === 'setAutoSim') snap = await postAction('/api/autosim', { enabled: msg.enabled })
-      if (snap) applySnapshot(snap, true)
+    let snap: OfficeSnapshot | null = null
+    if (msg.type === 'toggle') snap = await postAction('/api/toggle', { deviceId: msg.deviceId })
+    if (msg.type === 'preset') snap = await postAction('/api/preset', { preset: msg.preset })
+    if (msg.type === 'setAutoSim') snap = await postAction('/api/autosim', { enabled: msg.enabled })
+    if (snap) applySnapshot(snap)
+  }, [applySnapshot])
+
+  const toggleDevice = useCallback(
+    (id: string) => {
+      setDevices((prev) =>
+        prev.map((d) =>
+          d.id === id ? patchDevice(d, d.status === 'on' ? 'off' : 'on') : d,
+        ),
+      )
+      void sendToServer({ type: 'toggle', deviceId: id })
     },
-    [applySnapshot],
+    [sendToServer],
   )
 
-  const toggleDevice = useCallback((id: string) => send({ type: 'toggle', deviceId: id }), [send])
-  const applyPreset = useCallback((preset: string) => send({ type: 'preset', preset }), [send])
-  const setAutoSim = useCallback((enabled: boolean) => send({ type: 'setAutoSim', enabled }), [send])
+  const applyPreset = useCallback(
+    (preset: string) => {
+      void sendToServer({ type: 'preset', preset })
+    },
+    [sendToServer],
+  )
+
+  const setAutoSim = useCallback(
+    (enabled: boolean) => {
+      setAutoSimState(enabled)
+      void sendToServer({ type: 'setAutoSim', enabled })
+    },
+    [sendToServer],
+  )
 
   useEffect(() => {
     let mounted = true
@@ -106,8 +122,8 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
       if (pollRef.current) return
       pollRef.current = setInterval(async () => {
         const snap = await fetchSnapshot()
-        if (snap && mounted) applySnapshot(snap, true)
-      }, 2000)
+        if (snap && mounted) applySnapshot(snap)
+      }, 3000)
     }
 
     const stopPolling = () => {
@@ -118,7 +134,7 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
     }
 
     fetchSnapshot().then((snap) => {
-      if (snap && mounted) applySnapshot(snap, true)
+      if (snap && mounted) applySnapshot(snap)
     })
 
     const connect = () => {
@@ -130,24 +146,22 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
         attempt = 0
         stopPolling()
         setConnected(true)
-        setSource('websocket')
       }
 
       ws.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data as string) as ServerMessage
-          if (msg.type === 'snapshot') applySnapshot(msg.data, true)
+          if (msg.type === 'snapshot') applySnapshot(msg.data)
         } catch {
-          /* ignore malformed messages */
+          /* ignore */
         }
       }
 
       ws.onclose = () => {
         setConnected(false)
-        setSource('offline')
         startPolling()
         if (!mounted) return
-        const delay = Math.min(1000 * 2 ** attempt, 15_000)
+        const delay = Math.min(1000 * 2 ** attempt, 10_000)
         attempt++
         reconnectRef.current = setTimeout(connect, delay)
       }
@@ -172,7 +186,6 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
         alerts,
         loading,
         connected,
-        source,
         autoSim,
         toggleDevice,
         applyPreset,
