@@ -26,17 +26,9 @@ export function HeroStats() {
             }`}
           >
             <Radio size={12} className={connected ? 'animate-pulse' : ''} />
-            {connected ? 'Live' : 'Offline demo'}
+            {connected ? 'Live' : 'Reconnecting'}
           </div>
         </div>
-
-        {!connected && (
-          <div className="mb-2.5 rounded-xl border border-sky-200 bg-sky-50/80 px-3 py-2">
-            <p className="text-[11px] text-sky-900">
-              Showing demo data. Run <code className="rounded bg-white px-1 py-0.5">npm run dev:all</code> for live simulation.
-            </p>
-          </div>
-        )}
 
         {alerts.length > 0 && (
           <div className="mb-2.5 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2">

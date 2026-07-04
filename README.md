@@ -1,117 +1,66 @@
 # IUT Hackathon — Office Monitor
 
-Real-time office monitoring dashboard with WebSocket simulation server and Discord bot integration. Tracks 15 devices (3 rooms × 2 fans + 3 lights) with live power, alerts, and an interactive floor plan.
-
-**Device count note:** The problem statement mentions 18 devices in some places, but the floor plan confirms **15 controllable devices**. The "18" figure is a document typo.
+Real-time office monitoring dashboard with WebSocket simulation server and **Discord webhook** notifications. Tracks 15 devices (3 rooms × 2 fans + 3 lights) with live power, alerts, and an interactive floor plan.
 
 ## Architecture
 
 ```
 [server/state.ts — simulation + alerts]
         ↓
-[server/index.ts — WebSocket + REST API :3001]
+[server/index.ts — WebSocket + REST :3001]
         ↓                    ↓
-   [Dashboard]          [Discord Bot]
-   ws://host/ws         !status, !room, !usage
+   [Dashboard]          [Discord Webhook]
+   ws://host/ws         posts on every change
 ```
 
-- **WebSocket** (`/ws`) — real-time snapshots to the dashboard; accepts toggle, preset, and auto-sim commands.
-- **REST API** (`/api/*`) — same state for the Discord bot and external integrations.
+Every simulation change (manual toggle, preset, auto-sim tick, new alert) sends an embed to your Discord webhook.
 
 ## Quick start
 
-### 1. Install
-
 ```bash
 npm install
-```
-
-### 2. Run everything (recommended)
-
-```bash
 npm run dev:all
 ```
 
-This starts:
-- Office server on http://localhost:3001 (WebSocket + REST)
-- Dashboard on http://localhost:5173 (proxies `/ws` and `/api` to the server)
-
 Open http://localhost:5173
 
-### 3. Run separately
+## Discord webhook setup
 
-```bash
-# Terminal 1 — simulation server
-npm run server
+1. In your Discord server: **Server Settings → Integrations → Webhooks → New Webhook**
+2. Copy the webhook URL
+3. Add to `.env`:
 
-# Terminal 2 — dashboard
-npm run dev
+```
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 ```
 
-### 4. Discord bot (optional)
+4. Run `npm run server` or `npm run dev:all`
 
-1. Create a bot at [Discord Developer Portal](https://discord.com/developers/applications).
-2. Enable **Message Content Intent**.
-3. Copy `.env.example` to `.env` and set `DISCORD_TOKEN`.
-4. With the server running:
+Any device toggle, preset, auto-simulation change, or new alert will post to that channel.
+
+## Run separately
 
 ```bash
-npm run discord
+npm run server   # simulation + webhook + API
+npm run dev      # dashboard only (shows UI immediately, connects when server is up)
 ```
-
-**Commands:**
-| Command | Description |
-|---------|-------------|
-| `!status` | All rooms at a glance |
-| `!room drawing` | Device status for one room |
-| `!usage` | Live wattage breakdown |
-| `!help` | Command list |
-
-## REST API
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | Health check |
-| `/api/snapshot` | GET | Full state (devices, alerts, autoSim) |
-| `/api/status` | GET | Human-readable status text |
-| `/api/usage` | GET | Wattage breakdown |
-| `/api/room/:name` | GET | Room detail (`drawing`, `workroom1`, `workroom2`) |
-| `/api/toggle` | POST | `{ "deviceId": "drawing-fan-1" }` |
-| `/api/preset` | POST | `{ "preset": "office_busy" }` |
-| `/api/autosim` | POST | `{ "enabled": true }` |
 
 ## WebSocket protocol
 
-**Server → client:**
-```json
-{ "type": "snapshot", "data": { "devices": [], "alerts": [], "autoSim": true } }
-```
+**Server → client:** `{ "type": "snapshot", "data": { devices, alerts, autoSim } }`
 
 **Client → server:**
-```json
-{ "type": "toggle", "deviceId": "drawing-fan-1" }
-{ "type": "preset", "preset": "after_hours" }
-{ "type": "setAutoSim", "enabled": false }
-```
+- `{ "type": "toggle", "deviceId": "drawing-fan-1" }`
+- `{ "type": "preset", "preset": "after_hours" }`
+- `{ "type": "setAutoSim", "enabled": false }`
 
 ## Project structure
 
 ```
 src/                React dashboard (floor plan, stats, controls)
-server/             WebSocket + REST server with in-memory simulation
+server/             WebSocket + REST + simulation + Discord webhook
 shared/             Shared TypeScript types
-discord/            Discord bot (reads REST API)
-supabase/           Optional legacy schema (not required)
 ```
-
-## Wattage
-
-| Device | On | Off |
-|--------|-----|-----|
-| Fan | 60W | 0W |
-| Light | 15W | 0W |
-
-Office hours for alerts: 9 AM – 5 PM.
 
 ## Build
 
@@ -119,14 +68,3 @@ Office hours for alerts: 9 AM – 5 PM.
 npm run build
 npm run preview
 ```
-
-## Environment variables
-
-See [`.env.example`](.env.example):
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3001` | Server port |
-| `VITE_WS_URL` | (proxy) | Override WebSocket URL for dashboard |
-| `DISCORD_TOKEN` | — | Discord bot token |
-| `API_URL` | `http://localhost:3001` | API base for Discord bot |

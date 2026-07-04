@@ -128,7 +128,7 @@ export function SimulationPanel() {
       </div>
 
       <p className="shrink-0 text-center text-[9px] text-slate-400">
-        {connected ? 'WebSocket connected' : 'Waiting for server…'}
+        {connected ? 'Live' : 'Reconnecting…'}
       </p>
     </aside>
   )
