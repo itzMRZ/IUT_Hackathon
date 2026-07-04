@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Fan, Lightbulb } from 'lucide-react'
+import { Fan, Lightbulb, ListChecks } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
 import { deviceDurationLabel } from '../lib/deviceUtils'
 import { ROOM_LABELS, type Device } from '../lib/types'
@@ -10,23 +10,20 @@ function StatusChip({ device, tick }: { device: Device; tick: number }) {
   const Icon = device.type === 'fan' ? Fan : Lightbulb
   const duration = deviceDurationLabel(device)
   const roomShort = ROOM_LABELS[device.room]
-    .replace('Work Room ', 'WR ')
+    .replace('Work Room ', 'WR')
     .replace('Drawing Room', 'Draw')
 
   return (
     <div
-      className={`flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 ${
-        on ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-slate-600'
-      }`}
+      className={`status-chip ${on ? 'status-chip--on' : ''}`}
       title={`${roomShort} ${device.label}: ${on ? 'ON' : 'OFF'} for ${duration}`}
     >
-      <Icon size={11} strokeWidth={2.25} className={on ? 'text-emerald-600' : 'text-slate-400'} aria-hidden />
-      <span className="whitespace-nowrap text-[10px] font-medium">
+      <span className="status-chip__dot" />
+      <Icon size={11} strokeWidth={2.25} aria-hidden />
+      <span className="whitespace-nowrap font-medium">
         {roomShort} {device.label}
       </span>
-      <span className={`rounded px-1 py-px text-[8px] font-bold ${on ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600'}`}>
-        {on ? 'ON' : 'OFF'}
-      </span>
+      <span className="whitespace-nowrap opacity-60">{duration}</span>
     </div>
   )
 }
@@ -46,14 +43,15 @@ export function StatusBar() {
   })
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center gap-2 px-2.5 py-1.5">
-        <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-slate-400">Devices</span>
-        <div className="scrollbar-thin flex min-w-0 flex-1 gap-1 overflow-x-auto">
-          {sorted.map((d) => (
-            <StatusChip key={d.id} device={d} tick={tick} />
-          ))}
-        </div>
+    <div className="status-strip">
+      <span className="status-strip__label">
+        <ListChecks size={12} className="mr-1 inline" aria-hidden />
+        Devices
+      </span>
+      <div className="scrollbar-thin flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
+        {sorted.map((d) => (
+          <StatusChip key={d.id} device={d} tick={tick} />
+        ))}
       </div>
     </div>
   )

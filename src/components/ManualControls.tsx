@@ -1,53 +1,47 @@
-import { Fan, Lightbulb } from 'lucide-react'
+import { Fan, Lightbulb, ToggleLeft, Wifi } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
 import { ROOM_LABELS, ROOM_ORDER, type Device, type Room } from '../lib/types'
 
-const btn =
-  'rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-1'
-
-function ToggleRow({ device }: { device: Device }) {
+function DeviceToggle({ device }: { device: Device }) {
   const { toggleDevice } = useOfficeData()
   const on = device.status === 'on'
   const Icon = device.type === 'fan' ? Fan : Lightbulb
 
   return (
-    <button
-      type="button"
-      onClick={() => toggleDevice(device.id)}
-      aria-pressed={on}
-      className={`${btn} flex w-full items-center justify-between px-2.5 py-2 text-left ${
-        on
-          ? 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100'
-          : 'border-slate-200 bg-white hover:bg-slate-50'
-      }`}
-    >
-      <span className="flex items-center gap-2 text-[12px] font-medium text-slate-700">
-        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${on ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-          <Icon size={13} strokeWidth={2.25} aria-hidden />
+    <div className={`device-row ${on ? 'device-row--on' : ''}`}>
+      <div className="device-row__info">
+        <span className="device-row__icon">
+          <Icon size={14} strokeWidth={2.25} aria-hidden />
         </span>
-        {device.label}
-      </span>
-      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${on ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-        {on ? 'ON' : 'OFF'}
-      </span>
-    </button>
+        <span className="device-row__label">{device.label}</span>
+      </div>
+      <button
+        type="button"
+        className={`switch ${on ? 'switch--on' : ''}`}
+        role="switch"
+        aria-checked={on}
+        aria-label={`${device.label} in ${ROOM_LABELS[device.room]}`}
+        onClick={() => toggleDevice(device.id)}
+      >
+        <span className="switch__thumb" />
+      </button>
+    </div>
   )
 }
 
-function RoomToggles({ room }: { room: Room }) {
+function RoomGroup({ room }: { room: Room }) {
   const { devices } = useOfficeData()
   const roomDevices = devices.filter((d) => d.room === room)
 
   return (
-    <div>
-      <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+    <div className="room-group">
+      <p className="room-group__title">
+        <span className="room-group__dot" />
         {ROOM_LABELS[room]}
       </p>
-      <div className="space-y-1">
-        {roomDevices.map((d) => (
-          <ToggleRow key={d.id} device={d} />
-        ))}
-      </div>
+      {roomDevices.map((d) => (
+        <DeviceToggle key={d.id} device={d} />
+      ))}
     </div>
   )
 }
@@ -58,17 +52,21 @@ export function ManualControls() {
   return (
     <div className="panel-card panel-card--grow">
       <div className="panel-card__header">
-        <h2 className="panel-card__title">On / Off</h2>
+        <div className="panel-card__title-group">
+          <span className="panel-card__icon">
+            <ToggleLeft size={15} strokeWidth={2.25} aria-hidden />
+          </span>
+          <h2 className="panel-card__title">Device Controls</h2>
+        </div>
         <span className={`panel-badge ${connected ? 'panel-badge--live' : 'panel-badge--local'}`}>
+          <Wifi size={9} className="mr-1 inline" aria-hidden />
           {connected ? 'Live' : 'Local'}
         </span>
       </div>
       <div className="panel-scroll panel-card__body">
-        <div className="space-y-2.5">
-          {ROOM_ORDER.map((room) => (
-            <RoomToggles key={room} room={room} />
-          ))}
-        </div>
+        {ROOM_ORDER.map((room) => (
+          <RoomGroup key={room} room={room} />
+        ))}
       </div>
     </div>
   )

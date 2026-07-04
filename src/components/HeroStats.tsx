@@ -1,4 +1,4 @@
-import { Zap, Power, Fan, Lightbulb, AlertTriangle, Radio } from 'lucide-react'
+import { Zap, Power, Fan, Lightbulb, AlertTriangle, Building2 } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
 import { totalWattage, wattageByRoom } from '../lib/wattage'
 import { ROOM_LABELS, ROOM_ORDER } from '../lib/types'
@@ -11,39 +11,45 @@ export function HeroStats() {
   const byRoom = wattageByRoom(devices)
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 shadow-sm">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h1 className="text-[13px] font-bold text-slate-800">Office Monitor</h1>
-        <span
-          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-            connected ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-          }`}
-        >
-          <Radio size={10} strokeWidth={2.5} className={connected ? 'animate-pulse' : ''} aria-hidden />
-          {connected ? 'Live' : 'Local'}
+    <div>
+      <div className="topbar">
+        <div className="brand">
+          <div className="brand__mark">
+            <Building2 size={18} strokeWidth={2.25} aria-hidden />
+          </div>
+          <div>
+            <p className="brand__title">Office Monitor</p>
+            <p className="brand__subtitle">Real-time device tracking · 3 rooms · 15 devices</p>
+          </div>
+        </div>
+
+        <span className={`live-pill ${connected ? 'live-pill--on' : 'live-pill--off'}`}>
+          <span className={`live-dot ${connected ? 'live-dot--pulse' : ''}`} />
+          {connected ? 'Live simulation' : 'Reconnecting'}
         </span>
       </div>
 
-      <div className="grid grid-cols-4 gap-1.5 lg:grid-cols-7">
-        <StatCard icon={Zap} iconColor="text-violet-500" bg="bg-violet-50" label="Power" value={`${total}W`} />
-        <StatCard icon={Power} iconColor="text-emerald-500" bg="bg-emerald-50" label="On" value={String(onCount)} sub={`/${devices.length}`} />
-        <StatCard icon={Lightbulb} iconColor="text-slate-400" bg="bg-slate-50" label="Off" value={String(offCount)} />
+      <div className="stat-row">
+        <StatCard icon={Zap} tint="#7c3aed" tintBg="#f3e8ff" label="Total Power" value={`${total}`} sub="W" />
+        <StatCard icon={Power} tint="#16a34a" tintBg="#dcfce7" label="Devices On" value={String(onCount)} sub={`/ ${devices.length}`} />
+        <StatCard icon={Lightbulb} tint="#64748b" tintBg="#f1f5f9" label="Devices Off" value={String(offCount)} />
         <StatCard
           icon={AlertTriangle}
-          iconColor={alerts.length ? 'text-amber-500' : 'text-emerald-500'}
-          bg={alerts.length ? 'bg-amber-50' : 'bg-emerald-50'}
-          label="Alerts"
+          tint={alerts.length ? '#d97706' : '#16a34a'}
+          tintBg={alerts.length ? '#fef3c7' : '#dcfce7'}
+          label="Active Alerts"
           value={String(alerts.length)}
         />
         {ROOM_ORDER.map((room) => (
           <StatCard
             key={room}
             icon={Fan}
-            iconColor="text-sky-500"
-            bg="bg-sky-50"
-            label={ROOM_LABELS[room].replace('Work Room ', 'WR ').replace('Drawing Room', 'Drawing')}
-            value={`${byRoom[room]}W`}
-            sub={`${devices.filter((d) => d.room === room && d.status === 'on').length} on`}
+            tint="#0284c7"
+            tintBg="#e0f2fe"
+            label={ROOM_LABELS[room]}
+            value={`${byRoom[room]}`}
+            sub="W"
+            footnote={`${devices.filter((d) => d.room === room && d.status === 'on').length} on`}
           />
         ))}
       </div>
@@ -53,29 +59,32 @@ export function HeroStats() {
 
 function StatCard({
   icon: Icon,
-  iconColor,
-  bg,
+  tint,
+  tintBg,
   label,
   value,
   sub,
+  footnote,
 }: {
   icon: typeof Zap
-  iconColor: string
-  bg: string
+  tint: string
+  tintBg: string
   label: string
   value: string
   sub?: string
+  footnote?: string
 }) {
   return (
-    <div className={`flex items-center gap-2 rounded-lg border border-slate-100 ${bg} px-2 py-1.5`}>
-      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white/80 ${iconColor}`}>
-        <Icon size={14} strokeWidth={2.25} aria-hidden />
+    <div className="stat-card">
+      <div className="stat-card__icon" style={{ background: tintBg, color: tint }}>
+        <Icon size={16} strokeWidth={2.25} aria-hidden />
       </div>
-      <div className="min-w-0 leading-none">
-        <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-        <p className="mt-0.5 text-[13px] font-bold tabular-nums text-slate-800">
+      <div className="min-w-0">
+        <p className="stat-card__label">{label}</p>
+        <p className="stat-card__value">
           {value}
-          {sub && <span className="text-[10px] font-medium text-slate-500">{sub}</span>}
+          {sub && <span className="stat-card__sub">{sub}</span>}
+          {footnote && <span className="stat-card__sub">{footnote}</span>}
         </p>
       </div>
     </div>

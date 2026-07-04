@@ -1,15 +1,12 @@
-import { Play, Pause, Sparkles } from 'lucide-react'
+import { Play, Pause, Zap, Moon, Clock, PowerOff, Wand2 } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
 
 const PRESETS = [
-  { id: 'office_busy', label: 'Office Busy', desc: 'Random devices on' },
-  { id: 'after_hours', label: 'After Hours', desc: 'Late-night alert' },
-  { id: 'room_stuck', label: 'Room Stuck', desc: '2hr all-on alert' },
-  { id: 'all_off', label: 'All Off', desc: 'Shut everything down' },
+  { id: 'office_busy', label: 'Office Busy', desc: 'Randomize devices', icon: Zap },
+  { id: 'after_hours', label: 'After Hours', desc: 'Trigger night alert', icon: Moon },
+  { id: 'room_stuck', label: 'Room Stuck', desc: '2hr all-on alert', icon: Clock },
+  { id: 'all_off', label: 'All Off', desc: 'Power down office', icon: PowerOff },
 ] as const
-
-const btn =
-  'rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-1'
 
 export function PresetPanel() {
   const { autoSim, setAutoSim, applyPreset } = useOfficeData()
@@ -17,23 +14,25 @@ export function PresetPanel() {
   return (
     <div className="panel-card">
       <div className="panel-card__header">
-        <div className="flex items-center gap-1.5">
-          <Sparkles size={13} strokeWidth={2.25} className="text-violet-500" aria-hidden />
+        <div className="panel-card__title-group">
+          <span className="panel-card__icon">
+            <Wand2 size={14} strokeWidth={2.25} aria-hidden />
+          </span>
           <h2 className="panel-card__title">Preset Modes</h2>
         </div>
       </div>
 
-      <div className="panel-card__body space-y-2">
+      <div className="panel-card__body">
         <div className="preset-grid">
           {PRESETS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => applyPreset(p.id)}
-              className={`${btn} preset-btn`}
-            >
-              <span className="preset-btn__label">{p.label}</span>
-              <span className="preset-btn__desc">{p.desc}</span>
+            <button key={p.id} type="button" onClick={() => applyPreset(p.id)} className="preset-btn">
+              <span className="preset-btn__icon">
+                <p.icon size={14} strokeWidth={2.25} aria-hidden />
+              </span>
+              <span>
+                <span className="preset-btn__label block">{p.label}</span>
+                <span className="preset-btn__desc">{p.desc}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -42,12 +41,10 @@ export function PresetPanel() {
           type="button"
           onClick={() => setAutoSim(!autoSim)}
           aria-pressed={autoSim}
-          className={`${btn} flex w-full items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-semibold ${
-            autoSim ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-slate-200 bg-slate-50 text-slate-600'
-          }`}
+          className={`autosim-btn ${autoSim ? 'autosim-btn--on' : 'autosim-btn--off'}`}
         >
-          {autoSim ? <Pause size={12} strokeWidth={2.5} aria-hidden /> : <Play size={12} strokeWidth={2.5} aria-hidden />}
-          Auto simulation {autoSim ? 'ON' : 'OFF'}
+          {autoSim ? <Pause size={13} strokeWidth={2.5} aria-hidden /> : <Play size={13} strokeWidth={2.5} aria-hidden />}
+          Auto Simulation {autoSim ? 'Running' : 'Paused'}
         </button>
       </div>
     </div>
