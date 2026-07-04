@@ -1,14 +1,17 @@
-import { Fan, Lightbulb, Play, Pause, Sparkles, AlertTriangle } from 'lucide-react'
+import { Fan, Lightbulb, Play, Pause, Sparkles } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
 import { ROOM_LABELS, ROOM_ORDER, type Device, type Room } from '../lib/types'
 
 const PRESETS = [
-  { id: 'office_busy', label: 'Office Hours Busy' },
-  { id: 'after_hours', label: 'After Hours Alert' },
-  { id: 'room_stuck', label: 'Room Stuck 2hr' },
+  { id: 'office_busy', label: 'Busy' },
+  { id: 'after_hours', label: 'After Hours' },
+  { id: 'room_stuck', label: 'Room Stuck' },
   { id: 'drawing_only', label: 'Drawing Only' },
   { id: 'all_off', label: 'All Off' },
 ] as const
+
+const btnFocus =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-1'
 
 function ToggleRow({ device }: { device: Device }) {
   const { toggleDevice } = useOfficeData()
@@ -19,14 +22,16 @@ function ToggleRow({ device }: { device: Device }) {
     <button
       type="button"
       onClick={() => toggleDevice(device.id)}
-      className={`flex w-full items-center justify-between rounded-lg border px-2 py-1.5 text-left transition-colors ${
+      aria-pressed={on}
+      aria-label={`${device.label} in ${ROOM_LABELS[device.room]}, currently ${on ? 'on' : 'off'}`}
+      className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-2 text-left transition-colors ${btnFocus} ${
         on
           ? 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100'
           : 'border-slate-200 bg-white hover:bg-slate-50'
       }`}
     >
       <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-700">
-        <Icon size={12} className={on ? 'text-emerald-600' : 'text-slate-400'} />
+        <Icon size={13} className={on ? 'text-emerald-600' : 'text-slate-400'} aria-hidden />
         {device.label}
       </span>
       <span
@@ -46,7 +51,7 @@ function RoomToggles({ room }: { room: Room }) {
 
   return (
     <div>
-      <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
         {ROOM_LABELS[room]}
       </p>
       <div className="space-y-1">
@@ -59,77 +64,58 @@ function RoomToggles({ room }: { room: Room }) {
 }
 
 export function SimulationPanel() {
-  const { alerts, autoSim, setAutoSim, applyPreset, connected } = useOfficeData()
+  const { autoSim, setAutoSim, applyPreset } = useOfficeData()
 
   return (
-    <aside className="flex h-full max-h-[38vh] min-h-0 flex-col gap-2 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white p-3 shadow-[var(--shadow-md)] lg:max-h-none">
-      <div className="shrink-0">
+    <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-md)]">
+      <div className="shrink-0 border-b border-slate-100 px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-violet-500" />
-          <h2 className="text-sm font-bold text-slate-800">Simulation</h2>
+          <Sparkles size={15} className="text-violet-500" aria-hidden />
+          <h2 className="text-sm font-bold text-slate-800">Controls</h2>
         </div>
-        <p className="mt-0.5 text-[10px] text-slate-500">Presets and manual device controls</p>
+        <p className="mt-0.5 text-[10px] text-slate-500">Presets and manual toggles</p>
       </div>
 
-      <div className="shrink-0">
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Presets</p>
-        <div className="flex flex-wrap gap-1">
+      <div className="shrink-0 space-y-2 border-b border-slate-100 px-3 py-2.5">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Presets</p>
+        <div className="flex flex-wrap gap-1.5">
           {PRESETS.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => applyPreset(p.id)}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800"
+              className={`rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 ${btnFocus}`}
             >
               {p.label}
             </button>
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setAutoSim(!autoSim)}
+          aria-pressed={autoSim}
+          className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition ${btnFocus} ${
+            autoSim
+              ? 'border-sky-200 bg-sky-50 text-sky-800'
+              : 'border-slate-200 bg-slate-50 text-slate-600'
+          }`}
+        >
+          {autoSim ? <Pause size={14} aria-hidden /> : <Play size={14} aria-hidden />}
+          Auto simulation {autoSim ? 'ON' : 'OFF'}
+        </button>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setAutoSim(!autoSim)}
-        className={`flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-          autoSim
-            ? 'border-sky-200 bg-sky-50 text-sky-800'
-            : 'border-slate-200 bg-slate-100 text-slate-600'
-        }`}
-      >
-        {autoSim ? <Pause size={14} /> : <Play size={14} />}
-        Auto simulation {autoSim ? 'ON' : 'OFF'}
-      </button>
-
-      {alerts.length > 0 && (
-        <div className="shrink-0 rounded-xl border border-amber-200 bg-amber-50/70 p-2">
-          <p className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase text-amber-800">
-            <AlertTriangle size={11} />
-            Alerts ({alerts.length})
-          </p>
-          <ul className="max-h-20 space-y-1 overflow-y-auto text-[10px] text-amber-900">
-            {alerts.slice(0, 4).map((a) => (
-              <li key={a.id} className="leading-snug">
-                {a.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-          Manual Controls
+      <div className="panel-scroll min-h-0 flex-1 overflow-y-auto px-3 py-2.5">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+          Manual Toggles
         </p>
-        <div className="space-y-3">
+        <div className="space-y-3 pb-1">
           {ROOM_ORDER.map((room) => (
             <RoomToggles key={room} room={room} />
           ))}
         </div>
       </div>
-
-      <p className="shrink-0 text-center text-[9px] text-slate-400">
-        {connected ? 'Live' : 'Reconnecting…'}
-      </p>
     </aside>
   )
 }

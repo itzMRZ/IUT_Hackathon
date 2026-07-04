@@ -42,20 +42,8 @@
       ]
     },
     "hallway": {
-      "waterCooler": { "x": 980, "y": 50, "width": 50, "height": 70 }
     }
   },
-  "plants": [
-    { "id": "drawing-plant-tl", "room": "drawing", "x": 50, "y": 55, "size": 36 },
-    { "id": "drawing-plant-br", "room": "drawing", "x": 290, "y": 420, "size": 34 },
-    { "id": "drawing-plant-mid", "room": "drawing", "x": 50, "y": 300, "size": 30 },
-    { "id": "wr1-plant-t", "room": "workroom1", "x": 300, "y": 60, "size": 22 },
-    { "id": "wr1-plant-b", "room": "workroom1", "x": 60, "y": 300, "size": 22 },
-    { "id": "wr2-plant-tr", "room": "workroom2", "x": 300, "y": 60, "size": 22 },
-    { "id": "wr2-plant-bl", "room": "workroom2", "x": 60, "y": 300, "size": 22 },
-    { "id": "hall-plant-l", "room": "hallway", "x": 50, "y": 90, "size": 36 },
-    { "id": "hall-plant-r", "room": "hallway", "x": 900, "y": 90, "size": 36 }
-  ],
   "devices": {
     "drawing-fan-1": { "room": "drawing", "type": "fan", "x": 180, "y": 130, "size": 48, "bladeLen": 52 },
     "drawing-fan-2": { "room": "drawing", "type": "fan", "x": 180, "y": 370, "size": 48, "bladeLen": 52 },
