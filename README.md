@@ -144,6 +144,9 @@ server/               Node WebSocket + REST server
 discord/              Discord bot starter (see docs/DISCORD_BOT_HANDOFF.md)
 shared/                Types shared between dashboard, server, and bot
 docs/                 Handoff and reference docs
+nginx/                 Reverse proxy config for VPS deployment
+ecosystem.config.cjs   PM2 process definitions (server + bot)
+deploy.sh              One-command redeploy script for the VPS
 ```
 
 <br>
@@ -172,3 +175,10 @@ to run the dashboard + simulation — Discord variables are opt-in.
 npm run build
 npm run preview
 ```
+
+<br>
+
+## Deploying to a VPS
+
+Full step-by-step guide (Nginx + PM2 + Certbot, one command to redeploy):
+📄 [`DEPLOYMENT.md`](DEPLOYMENT.md)

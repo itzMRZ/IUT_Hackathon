@@ -1,115 +1,155 @@
-# Deployment Guide (Vercel)
+# Deployment Guide (VPS)
 
-## Read this first — why it's two deployments, not one
-
-This project has two runtime pieces:
-
-1. **Dashboard** (`src/`) — a static Vite/React SPA. Deploys perfectly to Vercel.
-2. **Office server** (`server/`) — a Node process that holds the simulation
-   **in memory** and keeps a **persistent WebSocket connection** open to every
-   connected client.
-
-Vercel's hosting model for Node code is serverless functions: each request
-can hit a fresh, isolated instance, and any given instance is frozen or
-killed between requests. That's incompatible with this server on two counts:
-
-- **In-memory state** (`server/state.ts`) would reset or fork unpredictably
-  across invocations — devices would flicker between different values per
-  request.
-- **Persistent WebSockets** (`ws` library, `wss.on('connection', ...)`)
-  can't stay open across a serverless function's lifecycle the way this
-  server expects.
-
-So the correct architecture is:
+Everything runs on **one VPS**: Nginx serves the built dashboard and
+reverse-proxies API/WebSocket traffic to a single Node process managed by
+PM2. No split hosting, no cross-origin config needed — same-origin
+`fetch('/api/...')` and `new WebSocket('/ws')` just work.
 
 ```
-┌─────────────────────┐        ┌──────────────────────────┐
-│   Vercel              │  wss   │   Railway / Render / Fly    │
-│   Dashboard (static)  │◄──────►│   server/index.ts (Node)     │
-│   dist/ build          │  https │   WebSocket + REST + webhook │
-└─────────────────────┘        └──────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│  VPS                                                     │
+│                                                            │
+│   Nginx :80/:443                                            │
+│     ├─ /            → dist/ (static dashboard build)          │
+│     ├─ /api/*        → proxy → 127.0.0.1:3001 (REST)            │
+│     └─ /ws           → proxy → 127.0.0.1:3001 (WebSocket, upgrade)│
+│                                                                    │
+│   PM2                                                              │
+│     ├─ office-server       → server/index.ts (WS + REST + webhook)  │
+│     └─ office-discord-bot  → discord/bot.ts (optional)                │
+└────────────────────────────────────────────────────────┘
 ```
-
-The dashboard already supports this out of the box via `VITE_API_URL` and
-`VITE_WS_URL` (see `src/hooks/useOfficeData.tsx`) — you just need to set
-them at build time. No further code changes are required.
-
-> **Vercel MCP note:** this repo checked for a Vercel MCP integration to
-> drive the deployment automatically, but the Vercel MCP server was
-> unavailable (failed tool discovery) in this environment. Follow the
-> manual steps below — they take about 10 minutes total.
 
 <br>
 
-## Step 1 — Deploy the server (Railway, easiest option)
+## Prerequisites
 
-Any host that runs a persistent Node process works (Render, Fly.io, a VPS).
-Railway is the fastest for a hackathon demo.
-
-1. Go to [railway.app](https://railway.app) → **New Project → Deploy from
-   GitHub repo** → select this repo.
-2. Railway auto-detects Node. Set these in **Settings → Variables**:
-   ```
-   PORT=3001
-   DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...   # optional
-   ```
-3. Set the **Start Command** (Settings → Deploy) to:
-   ```
-   npm run server
-   ```
-4. Deploy. Railway gives you a public URL like:
-   ```
-   https://office-monitor-production.up.railway.app
-   ```
-5. Verify it's alive:
-   ```bash
-   curl https://office-monitor-production.up.railway.app/api/health
-   # { "ok": true }
-   ```
-
-**Render alternative:** New → Web Service → connect repo → Build Command
-`npm install`, Start Command `npm run server`, add the same env vars.
-
-<br>
-
-## Step 2 — Deploy the dashboard to Vercel
-
-1. Go to [vercel.com/new](https://vercel.com/new) → import this GitHub repo.
-2. Vercel should auto-detect **Vite** (this repo also ships `vercel.json`
-   pinning `framework: vite`, `buildCommand: npm run build`,
-   `outputDirectory: dist`).
-3. Add environment variables (**Project Settings → Environment Variables**),
-   using the Railway URL from Step 1:
-   ```
-   VITE_API_URL=https://office-monitor-production.up.railway.app
-   VITE_WS_URL=wss://office-monitor-production.up.railway.app/ws
-   ```
-   Note the protocol swap: `https` → `wss` for the WebSocket URL.
-4. Deploy. Vercel builds with `npm run build` and serves `dist/`.
-5. Open the deployed URL — the dashboard should show **Live** in the top
-   bar within a second or two, meaning it connected to the Railway
-   WebSocket successfully.
-
-### Via Vercel CLI instead of the dashboard
+On the VPS (Ubuntu/Debian assumed — adjust package manager for other distros):
 
 ```bash
-npm i -g vercel
-vercel link
-vercel env add VITE_API_URL production
-vercel env add VITE_WS_URL production
-vercel --prod
+# Node.js 20+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Nginx
+sudo apt-get install -y nginx
+
+# PM2 (process manager, keeps the server running + auto-restarts on crash/reboot)
+sudo npm install -g pm2
+
+# Certbot (free HTTPS, optional but recommended)
+sudo apt-get install -y certbot python3-certbot-nginx
 ```
 
 <br>
 
-## Step 3 — Discord (optional, works the same in production)
+## 1. Clone and configure
 
-- **Webhook:** set `DISCORD_WEBHOOK_URL` on the **Railway** service (not
-  Vercel — the webhook is sent by `server/`, not the dashboard).
-- **Bot:** the bot (`discord/bot.ts`) is a separate long-running process
-  too. Deploy it the same way as the server (Railway/Render), pointing
-  `API_URL` and `WS_URL` at your Railway server's public URL. See
-  [`docs/DISCORD_BOT_HANDOFF.md`](docs/DISCORD_BOT_HANDOFF.md).
+```bash
+sudo mkdir -p /var/www/office-monitor
+sudo chown $USER:$USER /var/www/office-monitor
+git clone https://github.com/itzMRZ/IUT_Hackathon.git /var/www/office-monitor
+cd /var/www/office-monitor
+
+cp .env.example .env
+nano .env   # fill in DISCORD_WEBHOOK_URL / DISCORD_TOKEN if using Discord
+```
+
+For a single-VPS deployment you can leave `VITE_API_URL` / `VITE_WS_URL`
+**unset** — the dashboard uses relative paths (`/api`, `/ws`) which Nginx
+proxies to the Node server on the same host.
+
+## 2. Install and build
+
+```bash
+npm ci
+npm run build      # produces dist/ — this is what Nginx serves
+```
+
+## 3. Start the server with PM2
+
+```bash
+pm2 start ecosystem.config.cjs
+pm2 save                 # persist the process list
+pm2 startup              # prints a command to run so PM2 survives reboots — run it
+```
+
+Check it's alive:
+
+```bash
+pm2 status
+curl http://127.0.0.1:3001/api/health   # { "ok": true }
+```
+
+If you don't want the Discord bot running (webhook-only is fine for most
+demos), stop just that process:
+
+```bash
+pm2 stop office-discord-bot
+pm2 delete office-discord-bot   # or remove it permanently
+```
+
+## 4. Configure Nginx
+
+A ready-to-use config is at [`nginx/office-monitor.conf`](nginx/office-monitor.conf).
+
+```bash
+sudo cp nginx/office-monitor.conf /etc/nginx/sites-available/office-monitor
+sudo nano /etc/nginx/sites-available/office-monitor
+# → replace `server_name your-domain.com;` with your domain or the VPS's IP
+# → replace the `root` path if you cloned somewhere other than /var/www/office-monitor
+
+sudo ln -s /etc/nginx/sites-available/office-monitor /etc/nginx/sites-enabled/
+sudo nginx -t              # test the config
+sudo systemctl reload nginx
+```
+
+Visit `http://your-domain-or-ip` — the dashboard should load and show
+**Live** within a couple seconds.
+
+## 5. HTTPS (recommended, needs a domain)
+
+```bash
+sudo certbot --nginx -d your-domain.com
+```
+
+Certbot edits the Nginx config to add a `listen 443 ssl` block and sets up
+auto-renewal. If you're deploying to a bare IP with no domain, skip this —
+the dashboard works fine over plain HTTP for a demo, just note that browsers
+will show "Not Secure."
+
+## 6. Firewall
+
+```bash
+sudo ufw allow 'Nginx Full'   # 80 + 443
+sudo ufw allow OpenSSH
+sudo ufw enable
+```
+
+Port `3001` does **not** need to be opened externally — Nginx talks to it
+over `127.0.0.1` only.
+
+<br>
+
+## Redeploying after code changes
+
+```bash
+cd /var/www/office-monitor
+./deploy.sh
+```
+
+This pulls the latest commit, reinstalls dependencies, rebuilds the
+dashboard, and reloads the PM2 processes with zero manual steps. Make it
+executable once: `chmod +x deploy.sh`.
+
+<br>
+
+## Discord bot on the same VPS
+
+Already covered by `ecosystem.config.cjs` (the `office-discord-bot` process)
+— just make sure `DISCORD_TOKEN` is set in `.env` before running
+`pm2 restart office-discord-bot`. Full command reference and API docs for
+whoever owns the bot: [`docs/DISCORD_BOT_HANDOFF.md`](docs/DISCORD_BOT_HANDOFF.md).
 
 <br>
 
@@ -117,24 +157,21 @@ vercel --prod
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Dashboard shows nothing but seed data, badge says offline | `VITE_API_URL`/`VITE_WS_URL` not set or wrong | Double-check the env vars in Vercel match your Railway URL exactly, redeploy after changing them (Vercel env vars are baked in at build time) |
-| Browser console: mixed content / blocked WebSocket | Used `ws://` instead of `wss://` for an `https` dashboard | `VITE_WS_URL` must start with `wss://` when the dashboard is served over HTTPS |
-| CORS error in console | Server not reachable or wrong URL | The server already sends `Access-Control-Allow-Origin: *` — verify the Railway URL responds to `curl <url>/api/health` first |
-| Devices reset randomly / look inconsistent | Server was deployed as a Vercel serverless function instead of a persistent host | Redeploy the server to Railway/Render/Fly — see "why it's two deployments" above |
-| Vercel build fails on TypeScript errors | `npm run build` runs `tsc -b` before `vite build` | Run `npm run build` locally first and fix any errors before pushing |
+| Dashboard loads but badge says "Reconnecting" | Node server isn't running, or Nginx `/ws` proxy misconfigured | `pm2 status` to confirm `office-server` is `online`; check `sudo nginx -t` and the `/ws` location block has the `Upgrade`/`Connection` headers |
+| `502 Bad Gateway` on `/api/*` | Node server crashed or wrong port | `pm2 logs office-server`; confirm `PORT=3001` in `.env` matches the Nginx `proxy_pass` port |
+| Changes not showing after `git pull` | Forgot to rebuild | Run `./deploy.sh` or manually `npm run build && pm2 reload ecosystem.config.cjs` |
+| PM2 processes gone after VPS reboot | `pm2 save` / `pm2 startup` not run | Run both once — see step 3 |
+| Discord bot won't start | Missing `DISCORD_TOKEN` | `pm2 logs office-discord-bot` will show the exact error; set the token in `.env` and `pm2 restart office-discord-bot` |
+| Nginx serves a blank page | `root` path in the config doesn't point at `dist/` | Confirm `npm run build` succeeded and the `root` in `nginx/office-monitor.conf` matches your clone path |
 
 <br>
 
-## Optional: single-command local rehearsal of the split setup
-
-Simulate the production topology locally before deploying:
+## Useful PM2 commands
 
 ```bash
-# Terminal 1 — the "Railway" server
-npm run server
-
-# Terminal 2 — the "Vercel" dashboard, pointed at it explicitly
-VITE_API_URL=http://localhost:3001 VITE_WS_URL=ws://localhost:3001/ws npm run dev
+pm2 status                 # see what's running
+pm2 logs office-server      # tail logs for the server
+pm2 logs office-discord-bot # tail logs for the bot
+pm2 restart office-server    # restart after an env var change
+pm2 monit                    # live CPU/memory dashboard
 ```
-
-If that works, the real deployment will too — it's the same code path.

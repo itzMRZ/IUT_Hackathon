@@ -57,26 +57,29 @@ body {
 }
 
 .dashboard-header {
-  padding: 14px 18px 0;
+  padding: 10px 18px 0;
 }
 
 .dashboard-footer {
-  padding: 0 18px 12px;
+  padding: 0 18px 10px;
 }
 
 .dashboard-body {
   display: grid;
   min-height: 0;
-  gap: 12px;
-  padding: 12px 18px;
+  gap: 10px;
+  padding: 10px 18px;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  /* Floor plan and device controls share the flexible space; presets is a
+     fixed set of buttons that never grows, so it can size to its content. */
+  grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr) auto;
 }
 
 .dashboard-floor {
   grid-column: 1;
   grid-row: 1;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -84,13 +87,14 @@ body {
   grid-column: 1;
   grid-row: 2;
   min-height: 0;
-  max-height: 44vh;
+  min-width: 0;
   overflow: hidden;
 }
 
 .dashboard-presets {
   grid-column: 1;
   grid-row: 3;
+  min-width: 0;
 }
 
 @media (min-width: 960px) {
@@ -105,8 +109,6 @@ body {
   .dashboard-manual {
     grid-column: 2;
     grid-row: 1;
-    max-height: none;
-    min-height: 0;
   }
   .dashboard-presets {
     grid-column: 2;
@@ -194,18 +196,17 @@ body {
 }
 
 /* ══════════════ Stat cards ══════════════ */
+/* A single row that never wraps, so the header's height is constant
+   regardless of viewport width — on narrow screens it scrolls
+   horizontally instead of pushing the body area down. */
 .stat-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 8px;
-  margin-top: 12px;
-}
-
-@media (min-width: 640px) {
-  .stat-row { grid-template-columns: repeat(4, 1fr); }
-}
-@media (min-width: 960px) {
-  .stat-row { grid-template-columns: repeat(7, 1fr); }
+  margin-top: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .stat-card {
@@ -215,8 +216,15 @@ body {
   border-radius: 12px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  padding: 10px 12px;
+  padding: 9px 12px;
+  flex: 1 1 130px;
+  min-width: 116px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (min-width: 960px) {
+  .stat-row { overflow-x: visible; }
+  .stat-card { flex: 1 1 0; min-width: 0; }
 }
 
 .stat-card:hover {
@@ -595,18 +603,6 @@ body {
 }
 
 /* ══════════════ Floor plan ══════════════ */
-.floor-legend {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  border-top: 1px solid var(--color-border);
-  background: #fafbfc;
-  padding: 7px 10px;
-  font-size: 10.5px;
-  color: var(--color-text-muted);
-}
-
 .light-pool { transition: opacity 1s ease; }
 .room-dim { transition: opacity 1s ease; }
 
@@ -619,17 +615,20 @@ body {
 
 /* ══════════════ Scrollbars ══════════════ */
 .scrollbar-thin::-webkit-scrollbar,
-.panel-scroll::-webkit-scrollbar {
+.panel-scroll::-webkit-scrollbar,
+.stat-row::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb,
-.panel-scroll::-webkit-scrollbar-thumb {
+.panel-scroll::-webkit-scrollbar-thumb,
+.stat-row::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 3px;
 }
 .scrollbar-thin::-webkit-scrollbar-track,
-.panel-scroll::-webkit-scrollbar-track {
+.panel-scroll::-webkit-scrollbar-track,
+.stat-row::-webkit-scrollbar-track {
   background: transparent;
 }
 
