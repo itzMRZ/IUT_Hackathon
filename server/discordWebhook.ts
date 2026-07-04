@@ -43,7 +43,7 @@ export async function notifyDiscordWebhook(prev: OfficeSnapshot, next: OfficeSna
       {
         title: '🏢 Office Monitor Update',
         description: lines.join('\n'),
-        color: next.alerts.length > prev.alerts.length ? 0xf59e0b : 0x7c3aed,
+        color: next.alerts.length > prev.alerts.length ? 0xf59e0b : 0x2563eb,
         fields: [
           { name: 'Total Power', value: `${totalW}W`, inline: true },
           { name: 'Devices On', value: `${onCount}/${next.devices.length}`, inline: true },

@@ -4,6 +4,7 @@ import { FloorPlan } from './components/floor-plan/FloorPlan'
 import { ManualControls } from './components/ManualControls'
 import { PresetPanel } from './components/PresetPanel'
 import { StatusBar } from './components/StatusBar'
+import { OnboardingTour } from './components/OnboardingTour'
 
 function Dashboard() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
   return (
     <OfficeProvider>
       <Dashboard />
+      <OnboardingTour />
     </OfficeProvider>
   )
 }

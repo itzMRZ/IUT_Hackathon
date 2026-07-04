@@ -30,7 +30,7 @@ export function HeroStats() {
       </div>
 
       <div className="stat-row">
-        <StatCard icon={Zap} tint="#7c3aed" tintBg="#f3e8ff" label="Total Power" value={`${total}`} sub="W" />
+        <StatCard icon={Zap} tint="#d97706" tintBg="#fef3c7" label="Total Power" value={`${total}`} sub="W" />
         <StatCard icon={Power} tint="#16a34a" tintBg="#dcfce7" label="Devices On" value={String(onCount)} sub={`/ ${devices.length}`} />
         <StatCard icon={Lightbulb} tint="#64748b" tintBg="#f1f5f9" label="Devices Off" value={String(offCount)} />
         <StatCard
