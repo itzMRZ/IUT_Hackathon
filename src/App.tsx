@@ -1,7 +1,8 @@
 import { OfficeProvider } from './hooks/useOfficeData'
 import { HeroStats } from './components/HeroStats'
 import { FloorPlan } from './components/floor-plan/FloorPlan'
-import { SimulationPanel } from './components/SimulationPanel'
+import { ManualControls } from './components/ManualControls'
+import { PresetPanel } from './components/PresetPanel'
 import { StatusBar } from './components/StatusBar'
 
 function Dashboard() {
@@ -15,8 +16,13 @@ function Dashboard() {
         <section className="dashboard-floor" aria-label="Office floor plan">
           <FloorPlan />
         </section>
-        <aside className="dashboard-controls" aria-label="Device controls">
-          <SimulationPanel />
+
+        <aside className="dashboard-manual" aria-label="On off controls">
+          <ManualControls />
+        </aside>
+
+        <aside className="dashboard-presets" aria-label="Preset modes">
+          <PresetPanel />
         </aside>
       </div>
 
