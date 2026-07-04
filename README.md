@@ -1,5 +1,8 @@
 # Smart Office Monitoring Dashboard
 
+<img width="800" height="500" alt="ezgif-67c9285e9b029037" src="https://github.com/user-attachments/assets/8e44d507-9993-4e2e-b0d9-e982881160ef" />
+
+
 A real-time office monitoring dashboard that tracks 15 devices (2 fans + 3 lights × 3 rooms) with a live WebSocket simulation, an interactive floor plan, manual controls, preset demo scenarios, and Discord notifications.
 
 
