@@ -10,30 +10,23 @@ function StatusChip({ device, tick }: { device: Device; tick: number }) {
   const Icon = device.type === 'fan' ? Fan : Lightbulb
   const duration = deviceDurationLabel(device)
   const roomShort = ROOM_LABELS[device.room]
-    .replace('Work Room', 'WR')
-    .replace('Drawing Room', 'Drawing')
+    .replace('Work Room ', 'WR ')
+    .replace('Drawing Room', 'Draw')
 
   return (
     <div
-      className={`flex shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 ${
-        on
-          ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-          : 'border-slate-200 bg-slate-50 text-slate-600'
+      className={`flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 ${
+        on ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-slate-600'
       }`}
       title={`${roomShort} ${device.label}: ${on ? 'ON' : 'OFF'} for ${duration}`}
     >
-      <Icon size={12} className={on ? 'text-emerald-600' : 'text-slate-400'} aria-hidden />
+      <Icon size={11} strokeWidth={2.25} className={on ? 'text-emerald-600' : 'text-slate-400'} aria-hidden />
       <span className="whitespace-nowrap text-[10px] font-medium">
         {roomShort} {device.label}
       </span>
-      <span
-        className={`rounded px-1 py-px text-[8px] font-bold ${
-          on ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-700'
-        }`}
-      >
+      <span className={`rounded px-1 py-px text-[8px] font-bold ${on ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600'}`}>
         {on ? 'ON' : 'OFF'}
       </span>
-      <span className="text-[9px] opacity-60">{duration}</span>
     </div>
   )
 }
@@ -53,17 +46,15 @@ export function StatusBar() {
   })
 
   return (
-    <footer className="shrink-0 border-t border-[var(--color-border)] bg-white">
-      <div className="flex items-center gap-2 px-3 py-1.5">
-        <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-          Devices
-        </span>
-        <div className="scrollbar-thin flex min-w-0 flex-1 gap-1.5 overflow-x-auto py-0.5">
+    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center gap-2 px-2.5 py-1.5">
+        <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-slate-400">Devices</span>
+        <div className="scrollbar-thin flex min-w-0 flex-1 gap-1 overflow-x-auto">
           {sorted.map((d) => (
             <StatusChip key={d.id} device={d} tick={tick} />
           ))}
         </div>
       </div>
-    </footer>
+    </div>
   )
 }

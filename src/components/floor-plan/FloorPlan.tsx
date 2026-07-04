@@ -15,11 +15,11 @@ export function FloorPlan() {
   )
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-white shadow-sm">
-      <div className="min-h-0 flex-1 overflow-hidden p-1">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-sm">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <svg
           viewBox={`0 0 ${vb.width} ${vb.height}`}
-          className="h-full w-full"
+          className="block h-full w-full"
           preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label="Office floor plan — click fans or lights to toggle"
@@ -32,14 +32,18 @@ export function FloorPlan() {
         </svg>
       </div>
 
-      <div className="flex shrink-0 items-center justify-center gap-4 border-t border-slate-100 bg-slate-50 px-3 py-1.5">
-        <span className="text-[10px] font-medium text-slate-500">
-          <Fan size={11} className="mr-1 inline text-amber-800" aria-hidden />
-          Click devices to toggle
+      <div className="flex shrink-0 items-center justify-center gap-3 border-t border-slate-100 bg-slate-50/90 px-2 py-1">
+        <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
+          <span className="flex h-5 w-5 items-center justify-center rounded bg-amber-100 text-amber-700">
+            <Fan size={11} strokeWidth={2.5} aria-hidden />
+          </span>
+          Tap to toggle
         </span>
-        <span className="text-[10px] font-medium text-slate-500">
-          <Lightbulb size={11} className="mr-1 inline text-amber-500" aria-hidden />
-          Yellow glow = on
+        <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
+          <span className="flex h-5 w-5 items-center justify-center rounded bg-yellow-100 text-yellow-600">
+            <Lightbulb size={11} strokeWidth={2.5} aria-hidden />
+          </span>
+          Glow = on
         </span>
       </div>
     </div>
