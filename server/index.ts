@@ -2,7 +2,8 @@ import 'dotenv/config'
 import { createServer, type IncomingMessage, type ServerResponse } from 'http'
 import { WebSocketServer, type WebSocket } from 'ws'
 import { OfficeState } from './state.js'
-import type { ClientMessage, ServerMessage } from '../shared/types.js'
+import { notifyDiscordWebhook } from './discordWebhook.js'
+import type { ClientMessage, OfficeSnapshot, ServerMessage } from '../shared/types.js'
 
 const PORT = Number(process.env.PORT ?? 3001)
 const state = new OfficeState()
@@ -108,8 +109,22 @@ const httpServer = createServer((req, res) => {
 
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' })
 
+let prevSnapshot: OfficeSnapshot | null = null
+let skipWebhook = true
+
 state.subscribe((snap) => {
   broadcast({ type: 'snapshot', data: snap })
+
+  if (skipWebhook) {
+    skipWebhook = false
+    prevSnapshot = snap
+    return
+  }
+
+  if (prevSnapshot) {
+    void notifyDiscordWebhook(prevSnapshot, snap)
+  }
+  prevSnapshot = snap
 })
 
 wss.on('connection', (ws) => {
@@ -133,4 +148,9 @@ httpServer.listen(PORT, () => {
   console.log(`Office server running on http://localhost:${PORT}`)
   console.log(`WebSocket: ws://localhost:${PORT}/ws`)
   console.log(`REST API:  http://localhost:${PORT}/api/snapshot`)
+  if (process.env.DISCORD_WEBHOOK_URL) {
+    console.log('Discord webhook: enabled')
+  } else {
+    console.log('Discord webhook: disabled (set DISCORD_WEBHOOK_URL in .env)')
+  }
 })

@@ -1,30 +1,35 @@
-import { OfficeProvider, useOfficeData } from './hooks/useOfficeData'
+import { OfficeProvider } from './hooks/useOfficeData'
 import { HeroStats } from './components/HeroStats'
 import { FloorPlan } from './components/floor-plan/FloorPlan'
-import { SimulationPanel } from './components/SimulationPanel'
+import { ManualControls } from './components/ManualControls'
+import { PresetPanel } from './components/PresetPanel'
 import { StatusBar } from './components/StatusBar'
+import { OnboardingTour } from './components/OnboardingTour'
 
 function Dashboard() {
-  const { loading, connected } = useOfficeData()
-
-  if (loading && !connected) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-[var(--color-canvas)]">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
-        <p className="text-sm text-slate-500">Connecting to office server…</p>
-        <p className="text-xs text-slate-400">Run <code className="rounded bg-slate-100 px-1.5 py-0.5">npm run dev:all</code></p>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <HeroStats />
-      <main className="grid min-h-0 flex-1 grid-cols-1 gap-2 overflow-hidden px-2 pb-2 lg:grid-cols-[1fr_260px]">
-        <FloorPlan />
-        <SimulationPanel />
-      </main>
-      <StatusBar />
+    <div className="dashboard-shell">
+      <header className="dashboard-header">
+        <HeroStats />
+      </header>
+
+      <div className="dashboard-body">
+        <section className="dashboard-floor" aria-label="Office floor plan">
+          <FloorPlan />
+        </section>
+
+        <aside className="dashboard-manual" aria-label="On off controls">
+          <ManualControls />
+        </aside>
+
+        <aside className="dashboard-presets" aria-label="Preset modes">
+          <PresetPanel />
+        </aside>
+      </div>
+
+      <footer className="dashboard-footer">
+        <StatusBar />
+      </footer>
     </div>
   )
 }
@@ -32,9 +37,8 @@ function Dashboard() {
 export default function App() {
   return (
     <OfficeProvider>
-      <div className="flex h-full flex-col overflow-hidden bg-[var(--color-canvas)]">
-        <Dashboard />
-      </div>
+      <Dashboard />
+      <OnboardingTour />
     </OfficeProvider>
   )
 }

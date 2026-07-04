@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Fan, Lightbulb } from 'lucide-react'
+import { Fan, Lightbulb, ListChecks } from 'lucide-react'
 import { useOfficeData } from '../hooks/useOfficeData'
 import { deviceDurationLabel } from '../lib/deviceUtils'
 import { ROOM_LABELS, type Device } from '../lib/types'
@@ -9,32 +9,21 @@ function StatusChip({ device, tick }: { device: Device; tick: number }) {
   const on = device.status === 'on'
   const Icon = device.type === 'fan' ? Fan : Lightbulb
   const duration = deviceDurationLabel(device)
-  const roomShort = ROOM_LABELS[device.room].replace('Work Room', 'WR').replace('Drawing Room', 'Drawing')
+  const roomShort = ROOM_LABELS[device.room]
+    .replace('Work Room ', 'WR')
+    .replace('Drawing Room', 'Draw')
 
   return (
     <div
-      className={`flex shrink-0 items-center gap-2 rounded-lg border px-2.5 py-1.5 ${
-        on
-          ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-          : 'border-slate-200 bg-slate-50 text-slate-600'
-      }`}
+      className={`status-chip ${on ? 'status-chip--on' : ''}`}
+      title={`${roomShort} ${device.label}: ${on ? 'ON' : 'OFF'} for ${duration}`}
     >
-      <Icon size={13} className={on ? 'text-emerald-600' : 'text-slate-400'} />
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold leading-none">
-          {roomShort} {device.label}
-        </p>
-        <p className="mt-0.5 text-[10px] opacity-75">
-          {on ? 'ON' : 'OFF'} for {duration}
-        </p>
-      </div>
-      <span
-        className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
-          on ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-700'
-        }`}
-      >
-        {on ? 'ON' : 'OFF'}
+      <span className="status-chip__dot" />
+      <Icon size={11} strokeWidth={2.25} aria-hidden />
+      <span className="whitespace-nowrap font-medium">
+        {roomShort} {device.label}
       </span>
+      <span className="whitespace-nowrap opacity-60">{duration}</span>
     </div>
   )
 }
@@ -54,17 +43,16 @@ export function StatusBar() {
   })
 
   return (
-    <footer className="shrink-0 border-t border-[var(--color-border)] bg-white/95 backdrop-blur-sm">
-      <div className="flex items-center gap-2 px-3 py-2">
-        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
-          Status
-        </span>
-        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-0.5 scrollbar-thin">
-          {sorted.map((d) => (
-            <StatusChip key={d.id} device={d} tick={tick} />
-          ))}
-        </div>
+    <div className="status-strip">
+      <span className="status-strip__label">
+        <ListChecks size={12} className="mr-1 inline" aria-hidden />
+        Devices
+      </span>
+      <div className="scrollbar-thin flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
+        {sorted.map((d) => (
+          <StatusChip key={d.id} device={d} tick={tick} />
+        ))}
       </div>
-    </footer>
+    </div>
   )
 }
