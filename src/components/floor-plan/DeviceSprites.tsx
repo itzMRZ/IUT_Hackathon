@@ -5,137 +5,92 @@ interface Props {
   devices: Device[]
 }
 
-function StatusBadge({ on, x, y }: { on: boolean; x: number; y: number }) {
-  const w = 36
-  const h = 14
-  return (
-    <g transform={`translate(${x - w / 2}, ${y})`}>
-      <rect
-        width={w}
-        height={h}
-        rx={7}
-        fill={on ? '#059669' : '#94a3b8'}
-        stroke={on ? '#047857' : '#64748b'}
-        strokeWidth={1}
-      />
-      <text
-        x={w / 2}
-        y={h / 2 + 1}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="white"
-        fontSize={8}
-        fontWeight={700}
-        fontFamily="DM Sans, system-ui, sans-serif"
-      >
-        {on ? 'ON' : 'OFF'}
-      </text>
-    </g>
-  )
-}
-
-function FanMarker({
-  x,
-  y,
-  size,
-  label,
-  spinning,
-  on,
-}: {
-  x: number
-  y: number
-  size: number
-  label: string
-  spinning: boolean
-  on: boolean
+function CeilingFan({ x, y, bladeLen, on, label }: {
+  x: number; y: number; bladeLen: number; on: boolean; label: string
 }) {
-  const r = size / 2
   return (
-    <g transform={`translate(${x}, ${y - 8})`} className="device-marker">
-      {/* drop shadow plate */}
-      <ellipse cx={0} cy={r + 6} rx={r * 0.9} ry={r * 0.25} fill="rgba(15,23,42,0.12)" />
-      {/* ceiling mount */}
-      <rect x={-3} y={-r - 8} width={6} height={10} fill="#64748b" rx={1} />
-      <line x1={0} y1={-r + 2} x2={0} y2={-r - 8} stroke="#475569" strokeWidth={2} />
-      {/* housing */}
-      <circle r={r} fill={on ? '#fef3c7' : '#f1f5f9'} stroke={on ? '#f59e0b' : '#cbd5e1'} strokeWidth={2.5} />
-      <g className={spinning ? 'fan-spinning' : ''}>
-        {[0, 72, 144, 216, 288].map((angle) => (
-          <path
-            key={angle}
-            d={`M 0 0 L ${r * 0.15} ${-r * 0.12} L 0 ${-r * 0.88} L ${-r * 0.15} ${-r * 0.12} Z`}
-            fill={on ? '#92400e' : '#94a3b8'}
-            transform={`rotate(${angle})`}
-          />
+    <g transform={`translate(${x}, ${y})`}>
+      {/* ceiling rod */}
+      <line x1={0} y1={-bladeLen * 0.55} x2={0} y2={-bladeLen * 0.15} stroke="#64748b" strokeWidth={3} strokeLinecap="round" />
+      <circle cx={0} cy={-bladeLen * 0.55} r={4} fill="#94a3b8" />
+
+      {/* motor housing */}
+      <ellipse cx={0} cy={0} rx={bladeLen * 0.22} ry={bladeLen * 0.14} fill={on ? '#78716c' : '#a8a29e'} stroke="#57534e" strokeWidth={1.5} />
+
+      {/* 3 blades - static when off, spin when on */}
+      <g className={on ? 'fan-blades-spin' : ''} style={{ transformOrigin: '0px 0px' }}>
+        {[0, 120, 240].map((deg) => (
+          <g key={deg} transform={`rotate(${deg})`}>
+            <rect
+              x={-bladeLen * 0.08}
+              y={-bladeLen * 0.92}
+              width={bladeLen * 0.16}
+              height={bladeLen * 0.78}
+              rx={bladeLen * 0.04}
+              fill={on ? '#92400e' : '#a8a29e'}
+              stroke={on ? '#78350f' : '#78716c'}
+              strokeWidth={1}
+            />
+          </g>
         ))}
       </g>
-      <circle r={r * 0.18} fill={on ? '#b45309' : '#64748b'} />
-      {/* label */}
-      <text
-        y={r + 18}
-        textAnchor="middle"
-        fill="#334155"
-        fontSize={9}
-        fontWeight={700}
-        fontFamily="DM Sans, system-ui, sans-serif"
-      >
+
+      {/* hub cap */}
+      <circle r={bladeLen * 0.12} fill={on ? '#44403c' : '#78716c'} stroke="#292524" strokeWidth={1} />
+
+      {/* label + status */}
+      <text y={bladeLen * 0.55} textAnchor="middle" fill="#334155" fontSize={10} fontWeight={700} fontFamily="DM Sans, sans-serif">
         {label}
       </text>
-      <StatusBadge on={on} x={0} y={r + 24} />
+      <g transform={`translate(${-18}, ${bladeLen * 0.62})`}>
+        <rect width={36} height={14} rx={7} fill={on ? '#059669' : '#94a3b8'} />
+        <text x={18} y={10} textAnchor="middle" fill="white" fontSize={8} fontWeight={700} fontFamily="DM Sans, sans-serif">
+          {on ? 'ON' : 'OFF'}
+        </text>
+      </g>
     </g>
   )
 }
 
-function LightMarker({
-  x,
-  y,
-  size,
-  label,
-  on,
-}: {
-  x: number
-  y: number
-  size: number
-  label: string
-  on: boolean
+function CeilingLight({ x, y, radius, poolRadius, on, label }: {
+  x: number; y: number; radius: number; poolRadius: number; on: boolean; label: string
 }) {
-  const r = size / 2
   return (
-    <g transform={`translate(${x}, ${y - 4})`} className="device-marker">
-      {on && (
-        <>
-          <circle r={r * 1.8} fill="none" stroke="#fbbf24" strokeWidth={1} opacity={0.4} className="status-pulse-on" />
-          <circle r={r * 1.3} fill="rgba(251,191,36,0.25)" />
-        </>
-      )}
+    <g transform={`translate(${x}, ${y})`}>
+      {/* fixture mount */}
+      <line x1={0} y1={-radius * 1.2} x2={0} y2={-radius * 0.5} stroke="#94a3b8" strokeWidth={2} />
       {/* shade */}
-      <ellipse cx={0} cy={-r * 0.3} rx={r * 0.9} ry={r * 0.35} fill={on ? '#fde68a' : '#e2e8f0'} stroke={on ? '#f59e0b' : '#cbd5e1'} strokeWidth={1.5} />
+      <path
+        d={`M ${-radius * 0.9} ${-radius * 0.4} Q 0 ${-radius * 0.9} ${radius * 0.9} ${-radius * 0.4} L ${radius * 0.7} ${radius * 0.1} L ${-radius * 0.7} ${radius * 0.1} Z`}
+        fill={on ? '#fde68a' : '#e2e8f0'}
+        stroke={on ? '#f59e0b' : '#cbd5e1'}
+        strokeWidth={1.5}
+      />
       {/* bulb */}
-      <circle r={r * 0.55} cy={r * 0.15} fill={on ? '#fbbf24' : '#cbd5e1'} stroke={on ? '#f59e0b' : '#94a3b8'} strokeWidth={2} />
-      {on && (
-        <g stroke="#fbbf24" strokeWidth={1.5} strokeLinecap="round" opacity={0.8}>
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-            <line
-              key={a}
-              x1={Math.cos((a * Math.PI) / 180) * r * 0.9}
-              y1={Math.sin((a * Math.PI) / 180) * r * 0.9}
-              x2={Math.cos((a * Math.PI) / 180) * r * 1.25}
-              y2={Math.sin((a * Math.PI) / 180) * r * 1.25}
-            />
-          ))}
-        </g>
-      )}
-      <text
-        y={r + 20}
-        textAnchor="middle"
-        fill="#334155"
-        fontSize={9}
-        fontWeight={700}
-        fontFamily="DM Sans, system-ui, sans-serif"
-      >
+      <circle cy={radius * 0.05} r={radius * 0.45} fill={on ? '#fbbf24' : '#cbd5e1'} stroke={on ? '#f59e0b' : '#94a3b8'} strokeWidth={2} />
+
+      {/* range indicator ring (subtle, shows lit area footprint) */}
+      <ellipse
+        cx={0}
+        cy={radius * 0.8}
+        rx={poolRadius * 0.35}
+        ry={poolRadius * 0.28}
+        fill="none"
+        stroke={on ? '#fbbf24' : '#cbd5e1'}
+        strokeWidth={1}
+        strokeDasharray={on ? '0' : '4 3'}
+        opacity={on ? 0.35 : 0.2}
+      />
+
+      <text y={radius * 1.8} textAnchor="middle" fill="#334155" fontSize={10} fontWeight={700} fontFamily="DM Sans, sans-serif">
         {label}
       </text>
-      <StatusBadge on={on} x={0} y={r + 26} />
+      <g transform={`translate(${-18}, ${radius * 2.05})`}>
+        <rect width={36} height={14} rx={7} fill={on ? '#059669' : '#94a3b8'} />
+        <text x={18} y={10} textAnchor="middle" fill="white" fontSize={8} fontWeight={700} fontFamily="DM Sans, sans-serif">
+          {on ? 'ON' : 'OFF'}
+        </text>
+      </g>
     </g>
   )
 }
@@ -154,29 +109,29 @@ export function DeviceSprites({ devices }: Props) {
         const x = room.x + pos.x
         const y = room.y + pos.y
         const on = device.status === 'on'
-        const shortLabel = device.label
 
         if (device.type === 'fan') {
           return (
-            <FanMarker
+            <CeilingFan
               key={device.id}
               x={x}
               y={y}
-              size={pos.size + 12}
-              label={shortLabel.trim()}
-              spinning={on}
+              bladeLen={pos.size * 0.65 + 18}
               on={on}
+              label={device.label}
             />
           )
         }
+        const poolRadius = 'poolRadius' in pos ? pos.poolRadius : 120
         return (
-          <LightMarker
+          <CeilingLight
             key={device.id}
             x={x}
             y={y}
-            size={pos.size + 10}
-            label={shortLabel.trim()}
+            radius={pos.size * 0.45 + 6}
+            poolRadius={poolRadius}
             on={on}
+            label={device.label}
           />
         )
       })}

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { mockStore } from '../lib/mockStore'
+import { patchDevice } from '../lib/deviceUtils'
 import type { Device, Alert } from '../lib/types'
 
 interface OfficeData {
@@ -9,6 +10,10 @@ interface OfficeData {
   loading: boolean
   connected: boolean
   source: 'supabase' | 'mock'
+  autoSim: boolean
+  toggleDevice: (id: string) => Promise<void>
+  applyPreset: (preset: string) => Promise<void>
+  setAutoSim: (enabled: boolean) => void
 }
 
 const OfficeContext = createContext<OfficeData | null>(null)
@@ -18,6 +23,7 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [connected, setConnected] = useState(false)
+  const [autoSim, setAutoSimState] = useState(true)
 
   const loadSnapshot = useCallback(async () => {
     if (!isSupabaseConfigured || !supabase) return
@@ -33,16 +39,54 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
     setConnected(true)
   }, [])
 
+  const toggleDevice = useCallback(async (id: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      mockStore.toggleDevice(id)
+      return
+    }
+    const device = devices.find((d) => d.id === id)
+    if (!device) return
+    const next = patchDevice(device, device.status === 'on' ? 'off' : 'on')
+    await supabase.from('devices').update({
+      status: next.status,
+      wattage: next.wattage,
+      last_changed: next.last_changed,
+      on_since: next.on_since,
+    }).eq('id', id)
+  }, [devices])
+
+  const applyPreset = useCallback(async (preset: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      mockStore.applyPreset(preset)
+      return
+    }
+    // Supabase presets: delegate to mock logic then bulk upsert would need service role;
+    // for demo UI use mock-style local apply via sequential updates
+    mockStore.applyPreset(preset)
+    await loadSnapshot()
+  }, [loadSnapshot])
+
+  const setAutoSim = useCallback((enabled: boolean) => {
+    setAutoSimState(enabled)
+    mockStore.setAutoSim(enabled)
+  }, [])
+
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       const sync = () => {
         setDevices(mockStore.getDevices())
         setAlerts(mockStore.getAlerts())
+        setAutoSimState(mockStore.isAutoSim())
         setLoading(false)
         setConnected(true)
       }
       sync()
-      return mockStore.subscribe(sync)
+      const interval = setInterval(sync, 1000)
+      const unsub = mockStore.subscribe(sync)
+      return () => {
+        unsub()
+        clearInterval(interval)
+      }
     }
 
     loadSnapshot()
@@ -86,6 +130,10 @@ export function OfficeProvider({ children }: { children: ReactNode }) {
         loading,
         connected,
         source: isSupabaseConfigured ? 'supabase' : 'mock',
+        autoSim,
+        toggleDevice,
+        applyPreset,
+        setAutoSim,
       }}
     >
       {children}

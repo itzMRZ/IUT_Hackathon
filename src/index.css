@@ -3,27 +3,13 @@
 
 @theme {
   --font-sans: 'DM Sans', system-ui, sans-serif;
-  --color-canvas: #e8ecf2;
+  --color-canvas: #eef1f6;
   --color-surface: #ffffff;
-  --color-surface-soft: #f4f6f9;
-  --color-surface-hero: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  --color-border: #dce3ed;
-  --color-border-strong: #c5d0de;
+  --color-border: #d8e0ea;
   --color-text: #1e293b;
   --color-text-muted: #64748b;
-  --color-text-subtle: #94a3b8;
-  --color-on: #059669;
-  --color-on-bg: #d1fae5;
-  --color-on-ring: #34d399;
-  --color-off: #64748b;
-  --color-off-bg: #f1f5f9;
-  --color-warning: #d97706;
-  --color-warning-bg: #fef3c7;
-  --color-live: #0ea5e9;
-  --color-live-bg: #e0f2fe;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
-  --shadow-hero: 0 8px 32px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
 }
 
 * {
@@ -45,56 +31,39 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-@keyframes fan-spin {
+@keyframes fan-blades-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-@keyframes plant-sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
-}
-
-@keyframes pulse-on {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.fan-spinning {
-  animation: fan-spin 1.8s linear infinite;
+.fan-blades-spin {
+  animation: fan-blades-spin 1.6s linear infinite;
+  transform-box: fill-box;
   transform-origin: center;
 }
 
-.plant-swaying {
-  animation: plant-sway 2.5s ease-in-out infinite;
-  transform-origin: bottom center;
-}
-
 .light-pool {
-  transition: opacity 1.5s ease;
+  transition: opacity 1.8s ease;
 }
 
 .room-dim {
-  transition: opacity 1.5s ease;
+  transition: opacity 1.8s ease;
 }
 
-.device-marker {
-  transition: filter 0.4s ease, opacity 0.4s ease;
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
 }
-
-.status-pulse-on {
-  animation: pulse-on 2s ease-in-out infinite;
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fan-spinning,
-  .plant-swaying,
-  .status-pulse-on {
+  .fan-blades-spin {
     animation: none;
   }
   .light-pool,
-  .room-dim,
-  .device-marker {
+  .room-dim {
     transition: none;
   }
 }

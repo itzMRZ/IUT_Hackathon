@@ -287,6 +287,26 @@ export function FloorPlanFurniture() {
   )
 }
 
+export function StaticPlants() {
+  return (
+    <>
+      {layout.plants.map((plant) => {
+        const room = layout.rooms[plant.room as keyof typeof layout.rooms]
+        const x = room.x + plant.x
+        const y = room.y + plant.y
+        const s = plant.size
+        return (
+          <g key={plant.id} transform={`translate(${x}, ${y})`}>
+            <ellipse cx={0} cy={s * 0.4} rx={s * 0.35} ry={s * 0.12} fill="#2d4a28" opacity={0.3} />
+            <rect x={-s * 0.08} y={0} width={s * 0.16} height={s * 0.45} fill="#5c4033" rx={2} />
+            <ellipse cx={0} cy={-s * 0.1} rx={s * 0.4} ry={s * 0.35} fill="#3d7a37" />
+          </g>
+        )
+      })}
+    </>
+  )
+}
+
 export function FloorPlanScene() {
   return (
     <svg viewBox={`0 0 ${vb.width} ${vb.height}`} className="w-full h-auto">

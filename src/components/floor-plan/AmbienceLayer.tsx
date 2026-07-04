@@ -21,54 +21,50 @@ export function AmbienceLayer({ devices }: Props) {
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
-        {lights.map((light) => {
-          const pos = layout.devices[light.id as keyof typeof layout.devices]
-          if (!pos || !('poolRadius' in pos)) return null
-          return (
-            <radialGradient
-              key={`grad-${light.id}`}
-              id={`pool-${light.id}`}
-              cx="50%"
-              cy="50%"
-              r="50%"
-            >
-              <stop offset="0%" stopColor="#fff4d0" stopOpacity={0.85} />
-              <stop offset="40%" stopColor="#ffe8a0" stopOpacity={0.45} />
-              <stop offset="100%" stopColor="#ffd870" stopOpacity={0} />
-            </radialGradient>
-          )
-        })}
+        {lights.map((light) => (
+          <radialGradient key={`grad-${light.id}`} id={`pool-${light.id}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fffbeb" stopOpacity={0.9} />
+            <stop offset="35%" stopColor="#fde68a" stopOpacity={0.5} />
+            <stop offset="70%" stopColor="#fcd34d" stopOpacity={0.15} />
+            <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
+          </radialGradient>
+        ))}
+        <filter id="light-soften">
+          <feGaussianBlur stdDeviation="8" />
+        </filter>
       </defs>
 
+      {/* Base darkness per room - stronger when all lights off */}
       {rooms.map((roomId) => {
         const room = roomOffset(roomId)
         const roomLights = lights.filter((l) => l.room === roomId)
-        const anyOn = roomLights.some((l) => l.status === 'on')
-        const dimOpacity = anyOn ? 0 : 0.35
+        const onCount = roomLights.filter((l) => l.status === 'on').length
+        const total = roomLights.length
+        const darkness = total === 0 ? 0.4 : (1 - onCount / total) * 0.45
 
         return (
-          <g key={roomId}>
-            <rect
-              x={room.x + 5}
-              y={room.y + 5}
-              width={room.w - 10}
-              height={room.h - 10}
-              fill="#64748b"
-              className="room-dim"
-              opacity={dimOpacity}
-              style={{ mixBlendMode: 'multiply' }}
-            />
-          </g>
+          <rect
+            key={`dim-${roomId}`}
+            x={room.x + 6}
+            y={room.y + 6}
+            width={room.w - 12}
+            height={room.h - 12}
+            fill="#1e293b"
+            className="room-dim"
+            opacity={darkness}
+            rx={4}
+          />
         )
       })}
 
+      {/* Per-light pools sized by poolRadius from layout */}
       {lights.map((light) => {
         const pos = layout.devices[light.id as keyof typeof layout.devices]
         if (!pos || !('poolRadius' in pos)) return null
         const room = roomOffset(light.room)
         const cx = room.x + pos.x
-        const cy = room.y + pos.y
-        const r = pos.poolRadius ?? 120
+        const cy = room.y + pos.y + 20
+        const r = pos.poolRadius
         const on = light.status === 'on'
 
         return (
@@ -77,11 +73,11 @@ export function AmbienceLayer({ devices }: Props) {
             cx={cx}
             cy={cy}
             rx={r}
-            ry={r * 0.85}
+            ry={r * 0.82}
             fill={`url(#pool-${light.id})`}
             className="light-pool"
             opacity={on ? 1 : 0}
-            style={{ mixBlendMode: 'screen' }}
+            filter="url(#light-soften)"
           />
         )
       })}

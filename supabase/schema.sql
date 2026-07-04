@@ -36,4 +36,5 @@ alter table devices enable row level security;
 alter table alerts enable row level security;
 
 create policy "anon read devices" on devices for select using (true);
+create policy "anon update devices" on devices for update using (true);
 create policy "anon read alerts" on alerts for select using (true);
