@@ -101,5 +101,5 @@ The flasher will automatically:
 
 ## Dashboard Deployment
 
-For instructions on deploying the dashboard itself, see [`Deployment.md`](./Deployment.md).
+For instructions on deploying the dashboard itself, see [`Deployment.md`](https://github.com/itzMRZ/Team_Abbas/blob/main/DEPLOYMENT.md).
 
